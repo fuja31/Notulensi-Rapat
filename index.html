@@ -30,6 +30,8 @@ input[type=text],input[type=date],input[type=time],input[type=number],input:not(
 .ed span[style*="background"]{color:#000}
 .tb{display:flex;gap:3px;flex-wrap:wrap;padding:4px;background:var(--card);border:1px solid var(--bd);border-bottom:0;border-radius:6px 6px 0 0}
 .tb button{padding:1px 8px;font-size:12px}
+.tb .sw{width:20px;height:20px;padding:0;border-radius:50%;border:1px solid #888}
+.hs{font-size:12px;color:var(--mu);align-self:center;margin-left:6px}
 .edw{margin-top:6px}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 h2{font-size:14px;margin:20px 0 6px;color:var(--ac);border-top:1px solid var(--bd);padding-top:12px}
@@ -54,8 +56,8 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .paper .kv td:first-child{width:78px;white-space:nowrap}
 .paper .kv td:nth-child(2){width:8px}
 .rt div,.rt p{margin:1px 0}
-.hd{font-weight:bold;margin-top:10px}
-.sec{font-weight:bold;text-transform:uppercase;margin:14px 0 4px}
+.hd{font-weight:bold;margin-top:10px;background:#efefef;padding:2px 6px;border-left:4px solid #555;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sec{font-weight:bold;text-transform:uppercase;text-align:center;margin:14px 0 6px;padding:3px 6px;background:#d9d9d9;border:1px solid #000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .qa{margin:4px 0}
 .sg td{text-align:center;width:50%}
 .sp{height:75px}
@@ -147,8 +149,10 @@ var CDNW='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.
 var F=['judulform','nama','tgl','jml','mulai','selesai','tempat','nmNotulen','nmKepsek'];
 var DEF='FORM NOTULENSI RAPAT GURU SD ALAM BANDUNG';
 var S={},IMG={att:[],doc:[]},cur=null,dirty=false,DOCS={},tmr;
-var TB=[['<b>B</b>','bold','Tebal'],['<i>I</i>','italic','Miring'],['<u>U</u>','underline','Garis bawah'],['Sorot','hl','Sorot (highlight)'],['• Poin','insertUnorderedList','Poin'],['1. Nomor','insertOrderedList','Penomoran'],['⇥','indent','Geser kanan / sub poin'],['⇤','outdent','Geser kiri'],['Hapus format','removeFormat','Hapus format']];
+var TB=[['<b>B</b>','bold','Tebal'],['<i>I</i>','italic','Miring'],['<u>U</u>','underline','Garis bawah'],['• Poin','insertUnorderedList','Poin'],['1. Nomor','insertOrderedList','Penomoran'],['⇥','indent','Geser kanan / sub poin'],['⇤','outdent','Geser kiri'],['Hapus format','removeFormat','Hapus format']];
 var TBH=TB.map(function(b,i){return '<button title="'+b[2]+'" onmousedown="event.preventDefault()" onclick="cmd('+i+')">'+b[0]+'</button>'}).join('');
+var HC=[['#fff176','Kuning'],['#b9f6ca','Hijau'],['#bbdefb','Biru'],['#f8bbd0','Merah muda'],['#ffcc80','Oranye'],['#e0e0e0','Abu-abu']];
+TBH+='<span class="hs">Sorot:</span>'+HC.map(function(c){return '<button class="sw" title="'+c[1]+'" style="background:'+c[0]+'" onmousedown="event.preventDefault()" onclick="hl(\''+c[0]+'\')"></button>'}).join('')+'<button title="Hapus sorot" onmousedown="event.preventDefault()" onclick="hl(\'transparent\')">✕ sorot</button>';
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function $(i){return document.getElementById(i)}
 function T(h){return String(h||'').replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').trim()}
@@ -157,22 +161,38 @@ var DBP;function idb(){return DBP||(DBP=new Promise(function(res,rej){var r=inde
 function tx(m,fn){return idb().then(function(d){return new Promise(function(res,rej){var t=d.transaction('notulen',m),q=fn(t.objectStore('notulen'));t.oncomplete=function(){res(q&&q.result)};t.onerror=t.onabort=function(){rej(t.error)}})})}
 /* sanitizer */
 var OK={B:1,STRONG:1,I:1,EM:1,U:1,UL:1,OL:1,LI:1,P:1,DIV:1,BLOCKQUOTE:1,MARK:1,SUB:1,SUP:1};
-function walk(n){var o='';n.childNodes.forEach(function(c){
- if(c.nodeType===3){o+=esc(c.nodeValue)}
- else if(c.nodeType===1){var t=c.tagName,s=walk(c);
-  if(t==='SPAN'){var st=c.style||{},bg=st.backgroundColor||'';
-   if(st.fontWeight==='bold'||+st.fontWeight>=600)s='<b>'+s+'</b>';
-   if(st.fontStyle==='italic')s='<i>'+s+'</i>';
-   if((st.textDecoration||'').indexOf('underline')>-1)s='<u>'+s+'</u>';
-   if(bg&&bg!=='transparent'&&/^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\)|[a-z]+)$/i.test(bg))s='<span style="background-color:'+bg+'">'+s+'</span>';
-   o+=s}
-  else if(t==='BR')o+='<br>';
-  else if(OK[t]){var g=t.toLowerCase();o+='<'+g+'>'+s+'</'+g+'>'}
-  else o+=s}});return o}
-function clean(h){var t=document.createElement('template');t.innerHTML=h;return walk(t.content)}
-function cmd(i){var c=TB[i][1];
- if(c==='hl'){document.execCommand('styleWithCSS',false,true);document.execCommand('hiliteColor',false,'#fff176');document.execCommand('styleWithCSS',false,false)}
- else document.execCommand(c,false,null)}
+var SKIP={STYLE:1,SCRIPT:1,XML:1,TITLE:1,META:1,LINK:1,HEAD:1,NOSCRIPT:1};
+function lst(a){var o='',st=[];a.forEach(function(it){
+ while(st.length>it.lv)o+='</li></'+st.pop()+'>';
+ if(st.length&&st.length===it.lv)o+='</li><li>'+it.h;
+ else{while(st.length<it.lv){var t=it.ol?'ol':'ul';st.push(t);o+='<'+t+'><li>'}o+=it.h}});
+ while(st.length)o+='</li></'+st.pop()+'>';return o}
+function walk(n){var o='',k=n.childNodes,i=0;
+ while(i<k.length){var c=k[i];
+  if(c.nodeType===1&&c.getAttribute('data-lv')){var a=[];
+   while(i<k.length&&((k[i].nodeType===1&&k[i].getAttribute('data-lv'))||(k[i].nodeType===3&&!k[i].nodeValue.trim()))){var e=k[i];if(e.nodeType===1)a.push({lv:+e.getAttribute('data-lv'),ol:e.getAttribute('data-ol')==='1',h:walk(e)});i++}
+   o+=lst(a);continue}
+  if(c.nodeType===3){o+=esc(c.nodeValue)}
+  else if(c.nodeType===1&&!SKIP[c.tagName]){var t=c.tagName,s=walk(c);
+   if(t==='SPAN'){var st=c.style||{},bg=st.backgroundColor||'';
+    if(st.fontWeight==='bold'||+st.fontWeight>=600)s='<b>'+s+'</b>';
+    if(st.fontStyle==='italic')s='<i>'+s+'</i>';
+    if((st.textDecoration||'').indexOf('underline')>-1)s='<u>'+s+'</u>';
+    if(bg&&bg!=='transparent'&&/^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\)|[a-z]+)$/i.test(bg))s='<span style="background-color:'+bg+'">'+s+'</span>';
+    o+=s}
+   else if(t==='BR')o+='<br>';
+   else if(OK[t]){var g=t.toLowerCase();o+='<'+g+'>'+s+'</'+g+'>'}
+   else o+=s}
+  i++}
+ return o}
+function clean(h){var a=h.indexOf('<!--StartFragment-->'),b=h.indexOf('<!--EndFragment-->');if(a>-1&&b>a)h=h.slice(a+20,b);
+ var t=document.createElement('template');t.innerHTML=h;
+ t.content.querySelectorAll('p').forEach(function(p){var m=/mso-list:\s*l\d+\s+level(\d+)/i.exec(p.getAttribute('style')||'');if(!m)return;
+  var ig=p.querySelector('[style*="mso-list:Ignore"]'),mk=ig?ig.textContent.replace(/\s|\u00a0/g,''):'';if(ig)ig.remove();
+  p.setAttribute('data-lv',m[1]);p.setAttribute('data-ol',/^[0-9A-Za-z]+[.)]$/.test(mk)?'1':'0')});
+ return walk(t.content)}
+function cmd(i){document.execCommand(TB[i][1],false,null)}
+function hl(c){document.execCommand('styleWithCSS',false,true);document.execCommand('hiliteColor',false,c);document.execCommand('styleWithCSS',false,false)}
 function blank(){return{judulform:DEF,bh:[{t:'',p:'',i:''}],qa:[],act:[]}}
 function fmtTgl(v){if(!v)return'';var p=v.split('-'),d=new Date(v+'T00:00:00');var b=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];return ['Minggu','Senin','Selasa','Rabu','Kamis',"Jum'at",'Sabtu'][d.getDay()]+', '+(+p[2])+' '+b[+p[1]-1]+' '+p[0]}
 function fmtWaktu(a,b){a=(a||'').replace(':','.');b=(b||'').replace(':','.');return a&&b?a+' – '+b:a||b}
