@@ -79,11 +79,20 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .paper table.bd td,.paper table.bd th{border:0;border-right:1px solid #000;border-bottom:1px solid #000}
 .paper table.t3{margin-top:-1px}
 .bx{border:1px solid #000;border-top-style:dashed;border-bottom-style:dashed;padding:4px 7px;margin-top:-1px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
-.rt.in>div:first-child,.rt.in>p:first-child{display:inline}
-.qa>.qans{padding-left:1.6em}
+.qr{display:flex;gap:.4em}
+.ql{flex:none;max-width:45%}
+.qr>.rt{flex:1;min-width:0}
+.qans{padding-left:1.6em}
 .qi{display:flex;gap:.4em;margin-left:1.6em}
 .qk{flex:none}
 .qb{flex:1;min-width:0}
+.paper table.t2{border-collapse:separate;border-spacing:0;margin-top:-1px;width:100%}
+.paper table.t2 td,.paper table.t2 th{border:0;border-left:1px solid #000;border-right:1px solid #000;padding:0;font-weight:normal}
+.paper table.t2 thead th{border-top:1px dashed #000;height:0;line-height:0;font-size:0}
+.paper table.t2 tfoot td{border-bottom:1px dashed #000;height:0;line-height:0;font-size:0}
+.paper table.t2 tbody td{padding:4px 7px}
+.paper table.tl th{text-align:center}
+.paper .rt{text-align:justify}
 .rt div,.rt p{margin:1px 0}
 .hd{font-weight:bold;margin-top:10px;background:#efefef;padding:2px 6px;border-left:4px solid #555;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .sec{font-weight:bold;text-transform:uppercase;text-align:center;margin:14px 0 6px;padding:3px 6px;background:#d9d9d9;border:1px solid #000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -95,7 +104,7 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .sg td{text-align:center;width:50%}
 .sp{height:75px}
 .lamp{text-align:center;font-weight:bold;text-transform:uppercase;margin:0 0 12px;font-size:14px}
-.att img{display:block;max-width:100%;max-height:230mm;margin:0 auto 12px;break-inside:avoid}
+.att img{display:block;width:100%;margin:0 auto 12px;break-inside:avoid}
 .doc{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .doc figure{margin:0;break-inside:avoid;text-align:center}
 .doc img{width:100%;max-height:85mm;object-fit:contain;border:1px solid #999}
@@ -109,6 +118,10 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
  .paper{border:0}
  .pg{padding:0;border:0!important}
  .pg+.pg{break-before:page}
+ .att{page:att}
+ @page att{size:A4;margin:6mm}
+ .att img{height:283mm;object-fit:contain;margin:0}
+ .att img:not(:last-child){break-after:page}
  tr.sg,table.t3,.hd,.sec{break-inside:avoid}
  .hd,.sec{break-after:avoid}
 }
@@ -286,7 +299,7 @@ function qaHtml(){return S.qa.map(function(q,i){var it=q.items||[];
 function lists(){
  $('bhList').innerHTML=S.bh.map(function(b,i){return '<div class="blk"><div class="r2"><input value="'+esc(b.t)+'" placeholder="Topik pembahasan" oninput="S.bh['+i+'].t=this.value;upd()"><input value="'+esc(b.p)+'" placeholder="Pembicara" oninput="S.bh['+i+'].p=this.value;upd()"></div>'+ed('bh',i,'i','Isi pembahasan',130)+'<button onclick="S.bh.splice('+i+',1);lists();upd()">Hapus topik</button></div>'}).join('');
  $('qaList').innerHTML=qaHtml();
- $('actList').innerHTML=S.act.map(function(a,i){return '<div class="blk"><input value="'+esc(a.t)+'" placeholder="Tindak lanjut" oninput="S.act['+i+'].t=this.value;upd()"><div class="r2" style="margin-top:6px"><input value="'+esc(a.p)+'" placeholder="Penanggung jawab" oninput="S.act['+i+'].p=this.value;upd()"><input value="'+esc(a.d)+'" placeholder="Tenggat" oninput="S.act['+i+'].d=this.value;upd()"></div><button onclick="S.act.splice('+i+',1);lists();upd()">Hapus</button></div>'}).join('');
+ $('actList').innerHTML=S.act.map(function(a,i){return '<div class="blk"><input value="'+esc(a.t)+'" placeholder="Keterangan tindak lanjut" oninput="S.act['+i+'].t=this.value;upd()"><div class="r2" style="margin-top:6px"><input value="'+esc(a.p)+'" placeholder="Penanggung jawab" oninput="S.act['+i+'].p=this.value;upd()"><input value="'+esc(a.d)+'" placeholder="Tenggat (opsional)" oninput="S.act['+i+'].d=this.value;upd()"></div><button onclick="S.act.splice('+i+',1);lists();upd()">Hapus</button></div>'}).join('');
  hydrate()}
 function addBh(){S.bh.push({t:'',p:'',i:''});lists();upd()}
 function addQa(){S.qa.push({n:'',items:[{q:'',m:'',a:'',nj:false}]});lists();upd()}
@@ -302,23 +315,24 @@ function render(){
  bh.forEach(function(b,i){c+='<div class="hd">'+String.fromCharCode(65+i%26)+'. '+esc(b.t)+(b.p?' – '+esc(b.p):'')+'</div><div class="rt">'+(b.i||'')+'</div>'});
  if(qa.length)c+='<div class="sec">Tanya Jawab</div>'+qa.map(function(q,i){
   var it=(q.items||[]).filter(function(t){return T(t.q)||(!t.nj&&(t.m||T(t.a)))}),n=(i+1)+'.',nm=q.n?esc(q.n):'';
-  function ans(t){if(t.nj)return '<div class="rt in qans"><b>Jawaban:</b> <i>Tidak dijawab</i></div>';
-   return T(t.a)?'<div class="rt in qans"><b>Jawaban'+(t.m?' ('+esc(t.m)+')':'')+':</b> '+t.a+'</div>':''}
+  function ans(t){if(t.nj)return '<div class="qr qans"><b class="ql">Jawaban:</b><div class="rt"><i>Tidak dijawab</i></div></div>';
+   return T(t.a)?'<div class="qr qans"><b class="ql">Jawaban'+(t.m?' ('+esc(t.m)+')':'')+':</b><div class="rt">'+t.a+'</div></div>':''}
   if(it.length<2){var t=it[0]||{};
-   return '<div class="qa"><div class="rt in"><b>'+n+(nm?' '+nm+':':'')+'</b> '+(T(t.q)?t.q:'')+'</div>'+ans(t)+'</div>'}
+   return '<div class="qa"><div class="qr"><b class="ql">'+n+(nm?' '+nm+':':'')+'</b><div class="rt">'+(T(t.q)?t.q:'')+'</div></div>'+ans(t)+'</div>'}
   return '<div class="qa"><div><b>'+n+(nm?' '+nm:'')+'</b></div>'+it.map(function(t,j){
    return '<div class="qi"><b class="qk">'+String.fromCharCode(97+j%26)+'.</b><div class="qb">'+(T(t.q)?'<div class="rt">'+t.q+'</div>':'')+ans(t)+'</div></div>'}).join('')+'</div>'}).join('');
  if(T(S.kesimpulan))c+='<div class="sec">Kesimpulan / Keputusan Rapat</div><div class="rt">'+S.kesimpulan+'</div>';
- if(ac.length)c+='<div class="sec">Tindak Lanjut</div><table><tr><th style="width:26px">No</th><th>Kegiatan</th><th>Penanggung Jawab</th><th>Tenggat</th></tr>'+ac.map(function(a,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(a.t)+'</td><td>'+esc(a.p)+'</td><td>'+esc(a.d)+'</td></tr>'}).join('')+'</table>';
+ if(ac.length){var hasD=ac.some(function(a){return a.d&&a.d.trim()});
+ c+='<div class="sec">Tindak Lanjut</div><table class="tl"><tr><th style="width:26px">No</th><th>Keterangan</th><th>Penanggung Jawab</th>'+(hasD?'<th>Tenggat</th>':'')+'</tr>'+ac.map(function(a,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(a.t)+'</td><td>'+esc(a.p)+'</td>'+(hasD?'<td>'+esc(a.d)+'</td>':'')+'</tr>'}).join('')+'</table>'}
  if(T(S.rencana))c+='<div class="sec">Rencana Rapat Berikutnya</div><div class="rt">'+S.rencana+'</div>';
  var nt='<div class="pg"><table class="bd"><tr><th class="tt" colspan="2">'+esc(S.judulform)+'</th></tr>'
  +'<tr class="id"><td colspan="2">'+idr('NAMA RAPAT',esc(S.nama),'8.5em')+'</td></tr>'
  +'<tr class="id"><td>'+idr('HARI/TANGGAL',esc(fmtTgl(S.tgl)),'8.5em')+'</td><td>'+idr('WAKTU',esc(fmtWaktu(S.mulai,S.selesai)),'9em')+'</td></tr>'
  +'<tr class="id"><td>'+idr('TEMPAT',esc(S.tempat),'8.5em')+'</td><td>'+idr('JUMLAH PESERTA',esc(S.jml)+(S.jml?' Orang':''),'9em')+'</td></tr>'
  +'<tr class="id"><td colspan="2">'+idr('AGENDA','<div class="rt">'+(S.agenda||'')+'</div>','8.5em')+'</td></tr>'
- +'</table>'+(c?'<div class="bx">'+c+'</div>':'')+'<table class="bd t3">'
+ +'</table>'+(c?'<table class="t2"><thead><tr><th></th></tr></thead><tbody><tr><td>'+c+'</td></tr></tbody><tfoot><tr><td></td></tr></tfoot></table>':'')+'<table class="bd t3">'
  +'<tr class="sg"><td>NOTULEN<div class="sp"></div>'+(S.nmNotulen?'<u>'+esc(S.nmNotulen)+'</u>':'')+'</td><td>KEPALA SEKOLAH SD ALAM BANDUNG<div class="sp"></div>'+(S.nmKepsek?'<u>'+esc(S.nmKepsek)+'</u>':'')+'</td></tr></table></div>';
- var h='';if(IMG.att.length)h+='<div class="pg att"><div class="lamp">Daftar Hadir</div>'+IMG.att.map(function(a){return '<img src="'+a.s+'">'}).join('')+'</div>';
+ var h='';if(IMG.att.length)h+='<div class="pg att">'+IMG.att.map(function(a){return '<img src="'+a.s+'">'}).join('')+'</div>';
  h+=nt;
  if(IMG.doc.length)h+='<div class="pg"><div class="lamp">Dokumentasi</div><div class="doc">'+IMG.doc.map(function(a){return '<figure><img src="'+a.s+'">'+(a.c?'<figcaption>'+esc(a.c)+'</figcaption>':'')+'</figure>'}).join('')+'</div></div>';
  $('paper').innerHTML=h}
