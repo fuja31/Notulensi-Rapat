@@ -69,7 +69,7 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .pg+.pg{border-top:2px dashed #bbb}
 .paper table{border-collapse:collapse;width:100%}
 .paper td,.paper th{border:1px solid #000;padding:4px 7px;vertical-align:top;text-align:left}
-.paper th.tt{text-align:center;text-transform:uppercase;font-size:14px;background:#4a4a4a;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.paper th.tt{text-align:center;text-transform:uppercase;font-size:1.08em;background:#4a4a4a;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .paper tr.id td{background:#e2e2e2;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .paper .kv{margin:2px 0 8px}
 .paper .kv td{border:0;padding:1px 4px 1px 0}
@@ -92,6 +92,8 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .paper table.t2 tfoot td{border-bottom:1px dashed #000;height:0;line-height:0;font-size:0}
 .paper table.t2 tbody td{padding:4px 7px}
 .paper table.tl th{text-align:center}
+.fsr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.fsr select{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:4px 8px}
 .paper .rt{text-align:justify}
 .rt div,.rt p{margin:1px 0}
 .hd{font-weight:bold;margin-top:10px;background:#efefef;padding:2px 6px;border-left:4px solid #555;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -103,16 +105,17 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .iv{flex:1;min-width:0}
 .sg td{text-align:center;width:50%}
 .sp{height:75px}
-.lamp{text-align:center;font-weight:bold;text-transform:uppercase;margin:0 0 12px;font-size:14px}
+.lamp{text-align:center;font-weight:bold;text-transform:uppercase;margin:0 0 12px;font-size:1.08em}
 .att img{display:block;width:100%;margin:0 auto 12px;break-inside:avoid}
 .doc{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .doc figure{margin:0;break-inside:avoid;text-align:center}
 .doc img{width:100%;max-height:85mm;object-fit:contain;border:1px solid #999}
-.doc figcaption{font-size:11px;margin-top:3px}
+.doc figcaption{font-size:.85em;margin-top:3px}
 @media print{
  @page{size:A4;margin:15mm}
  body{background:#fff}
  header,#fm,#home{display:none!important}
+ .fsr{display:none!important}
  #pv,#pv[hidden],#edit,#edit[hidden]{display:block!important}
  .wrap{padding:0;max-width:none}
  .paper{border:0}
@@ -188,7 +191,7 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
   <p class="mu" id="msg2"></p>
  </div>
  </div>
- <div class="wrap" id="pv" hidden><div class="paper" id="paper"></div></div>
+ <div class="wrap" id="pv" hidden><div class="fsr"><label for="fsz" style="margin:0">Ukuran huruf dokumen:</label><select id="fsz" onchange="S.fs=+this.value;upd()"><option value="10">10 pt</option><option value="11">11 pt</option><option value="12">12 pt</option></select><span class="mu">Berlaku untuk notulensi ini dan ikut tersimpan.</span></div><div class="paper" id="paper"></div></div>
 </div>
 <script>
 var CDNW='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -315,7 +318,7 @@ function render(){
  bh.forEach(function(b,i){c+='<div class="hd">'+String.fromCharCode(65+i%26)+'. '+esc(b.t)+(b.p?' – '+esc(b.p):'')+'</div><div class="rt">'+(b.i||'')+'</div>'});
  if(qa.length)c+='<div class="sec">Tanya Jawab</div>'+qa.map(function(q,i){
   var it=(q.items||[]).filter(function(t){return T(t.q)||(!t.nj&&(t.m||T(t.a)))}),n=(i+1)+'.',nm=q.n?esc(q.n):'';
-  function ans(t){if(t.nj)return '<div class="qr qans"><b class="ql">Jawaban:</b><div class="rt"><i>Tidak dijawab</i></div></div>';
+  function ans(t){if(t.nj)return '<div class="qr qans"><b class="ql">Jawaban:</b><div class="rt">-</div></div>';
    return T(t.a)?'<div class="qr qans"><b class="ql">Jawaban'+(t.m?' ('+esc(t.m)+')':'')+':</b><div class="rt">'+t.a+'</div></div>':''}
   if(it.length<2){var t=it[0]||{};
    return '<div class="qa"><div class="qr"><b class="ql">'+n+(nm?' '+nm+':':'')+'</b><div class="rt">'+(T(t.q)?t.q:'')+'</div></div>'+ans(t)+'</div>'}
@@ -335,7 +338,7 @@ function render(){
  var h='';if(IMG.att.length)h+='<div class="pg att">'+IMG.att.map(function(a){return '<img src="'+a.s+'">'}).join('')+'</div>';
  h+=nt;
  if(IMG.doc.length)h+='<div class="pg"><div class="lamp">Dokumentasi</div><div class="doc">'+IMG.doc.map(function(a){return '<figure><img src="'+a.s+'">'+(a.c?'<figcaption>'+esc(a.c)+'</figcaption>':'')+'</figure>'}).join('')+'</div></div>';
- $('paper').innerHTML=h}
+ $('paper').style.fontSize=(S.fs||10)+'pt';$('paper').innerHTML=h}
 function thumbs(){
  ['att','doc'].forEach(function(k){
   $(k==='att'?'thAtt':'thDoc').innerHTML=IMG[k].map(function(a,i){return '<div><img src="'+a.s+'">'+(k==='doc'?'<input value="'+esc(a.c)+'" placeholder="Keterangan" oninput="IMG.doc['+i+'].c=this.value;upd()">':'')+'<button onclick="IMG.'+k+'.splice('+i+',1);thumbs();upd()">Hapus</button></div>'}).join('')})}
@@ -362,7 +365,7 @@ function addFile(f,k){
 function bind(id,k){$(id).addEventListener('change',function(e){
  var fs=Array.prototype.slice.call(e.target.files);e.target.value='';
  fs.reduce(function(p,f){return p.then(function(){return addFile(f,k)})},Promise.resolve()).then(function(){thumbs();upd()})})}
-function fill(){F.forEach(function(f){$(f).value=S[f]||''})}
+function fill(){F.forEach(function(f){$(f).value=S[f]||''});$('fsz').value=S.fs||10}
 function view(e){$('home').hidden=e;$('edit').hidden=!e;$('h1').hidden=e;$('h2').hidden=!e;window.scrollTo(0,0)}
 function mode(m){$('fm').hidden=!!m;$('pv').hidden=!m;$('bIsi').className=m?'':'p';$('bPv').className=m?'p':'';window.scrollTo(0,0)}
 function openS(){migQa();if(!S.bh)S.bh=[];if(!S.qa)S.qa=[];if(!S.act)S.act=[];if(!S.judulform)S.judulform=DEF;fill();lists();thumbs();render();dirty=false;mode(0);view(true)}
