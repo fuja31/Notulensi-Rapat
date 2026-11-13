@@ -50,7 +50,8 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .pg+.pg{border-top:2px dashed #bbb}
 .paper table{border-collapse:collapse;width:100%}
 .paper td,.paper th{border:1px solid #000;padding:4px 7px;vertical-align:top;text-align:left}
-.paper th.tt{text-align:center;text-transform:uppercase;font-size:14px}
+.paper th.tt{text-align:center;text-transform:uppercase;font-size:14px;background:#1f6f5c;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.paper tr.id td{background:#e3f1ec;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .paper .kv{margin:2px 0 8px}
 .paper .kv td{border:0;padding:1px 4px 1px 0}
 .paper .kv td:first-child{width:78px;white-space:nowrap}
@@ -223,10 +224,10 @@ function render(){
  if(ac.length)c+='<div class="sec">Tindak Lanjut</div><table><tr><th style="width:26px">No</th><th>Kegiatan</th><th>Penanggung Jawab</th><th>Tenggat</th></tr>'+ac.map(function(a,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(a.t)+'</td><td>'+esc(a.p)+'</td><td>'+esc(a.d)+'</td></tr>'}).join('')+'</table>';
  if(T(S.rencana))c+='<div class="sec">Rencana Rapat Berikutnya</div><div class="rt">'+S.rencana+'</div>';
  var nt='<div class="pg"><table><tr><th class="tt" colspan="2">'+esc(S.judulform)+'</th></tr>'
- +'<tr><td colspan="2">NAMA RAPAT : '+esc(S.nama)+'</td></tr>'
- +'<tr><td>HARI/TANGGAL : '+esc(fmtTgl(S.tgl))+'</td><td>WAKTU : '+esc(fmtWaktu(S.mulai,S.selesai))+'</td></tr>'
- +'<tr><td>TEMPAT : '+esc(S.tempat)+'</td><td>JUMLAH PESERTA HADIR : '+esc(S.jml)+(S.jml?' Orang':'')+'</td></tr>'
- +'<tr><td colspan="2">AGENDA :<div class="rt">'+(S.agenda||'')+'</div></td></tr>'
+ +'<tr class="id"><td colspan="2"><b>NAMA RAPAT</b> : '+esc(S.nama)+'</td></tr>'
+ +'<tr class="id"><td><b>HARI/TANGGAL</b> : '+esc(fmtTgl(S.tgl))+'</td><td><b>WAKTU</b> : '+esc(fmtWaktu(S.mulai,S.selesai))+'</td></tr>'
+ +'<tr class="id"><td><b>TEMPAT</b> : '+esc(S.tempat)+'</td><td><b>JUMLAH PESERTA HADIR</b> : '+esc(S.jml)+(S.jml?' Orang':'')+'</td></tr>'
+ +'<tr><td colspan="2"><b>AGENDA</b> :<div class="rt">'+(S.agenda||'')+'</div></td></tr>'
  +(c?'<tr><td colspan="2">'+c+'</td></tr>':'')
  +'<tr class="sg"><td>NOTULEN<div class="sp"></div>'+(S.nmNotulen?'<u>'+esc(S.nmNotulen)+'</u>':'')+'</td><td>KEPALA SEKOLAH SD ALAM BANDUNG<div class="sp"></div>'+(S.nmKepsek?'<u>'+esc(S.nmKepsek)+'</u>':'')+'</td></tr></table></div>';
  var h='';if(IMG.att.length)h+='<div class="pg att"><div class="lamp">Daftar Hadir</div>'+IMG.att.map(function(a){return '<img src="'+a.s+'">'}).join('')+'</div>';
