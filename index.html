@@ -33,6 +33,12 @@ input[type=text],input[type=date],input[type=time],input[type=number],input:not(
 .tb .sw{width:20px;height:20px;padding:0;border-radius:50%;border:1px solid #888}
 .hs{font-size:12px;color:var(--mu);align-self:center;margin-left:6px}
 .sp2{width:6px}
+.qg{display:grid;grid-template-columns:150px 1fr;gap:6px;align-items:start;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--bd)}
+.qg .edw{margin-top:0}
+.qg label.nj{font-size:12px;color:var(--mu);margin:0;display:flex;gap:4px;align-items:center}
+.qg label.nj input{width:auto;padding:0}
+.qg>button{justify-self:start;padding:3px 10px;font-size:12px}
+@media(max-width:600px){.qg{grid-template-columns:1fr}}
 .tb .cv{padding:1px 4px;margin-left:-4px;border-radius:0 6px 6px 0}
 .hlA{font-weight:bold;border-bottom:3px solid var(--hc,#fff176);padding:0 2px;line-height:1}
 #pop{position:absolute;z-index:50;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:270px}
@@ -67,8 +73,17 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .paper tr.id td{background:#e2e2e2;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .paper .kv{margin:2px 0 8px}
 .paper .kv td{border:0;padding:1px 4px 1px 0}
-.paper .kv td:first-child{width:78px;white-space:nowrap}
+.paper .kv td:first-child{width:92px;white-space:nowrap}
 .paper .kv td:nth-child(2){width:8px}
+.paper table.bd{border-collapse:separate;border-spacing:0;border-left:1px solid #000;border-top:1px solid #000}
+.paper table.bd td,.paper table.bd th{border:0;border-right:1px solid #000;border-bottom:1px solid #000}
+.paper table.t3{margin-top:-1px}
+.bx{border:1px solid #000;border-top-style:dashed;border-bottom-style:dashed;padding:4px 7px;margin-top:-1px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.rt.in>div:first-child,.rt.in>p:first-child{display:inline}
+.qa>.qans{padding-left:1.6em}
+.qi{display:flex;gap:.4em;margin-left:1.6em}
+.qk{flex:none}
+.qb{flex:1;min-width:0}
 .rt div,.rt p{margin:1px 0}
 .hd{font-weight:bold;margin-top:10px;background:#efefef;padding:2px 6px;border-left:4px solid #555;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .sec{font-weight:bold;text-transform:uppercase;text-align:center;margin:14px 0 6px;padding:3px 6px;background:#d9d9d9;border:1px solid #000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -94,7 +109,7 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
  .paper{border:0}
  .pg{padding:0;border:0!important}
  .pg+.pg{break-before:page}
- tr.sg,.hd,.sec{break-inside:avoid}
+ tr.sg,table.t3,.hd,.sec{break-inside:avoid}
  .hd,.sec{break-after:avoid}
 }
 </style>
@@ -129,7 +144,7 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
    <div><label>Waktu mulai</label><input id="mulai" type="time"></div>
    <div><label>Waktu selesai</label><input id="selesai" type="time"></div>
   </div>
-  <label>Jumlah peserta hadir</label><input id="jml" type="number" min="0">
+  <label>Jumlah peserta</label><input id="jml" type="number" min="0">
   <label>Agenda</label><div class="slot" data-f="agenda" data-ph="Pendalaman ..." data-mh="70"></div>
   <h2>Pembahasan (per topik dan pembicara)</h2>
   <div id="bhList"></div>
@@ -254,15 +269,27 @@ function blank(){return{judulform:DEF,bh:[{t:'',p:'',i:''}],qa:[],act:[]}}
 function fmtTgl(v){if(!v)return'';var p=v.split('-'),d=new Date(v+'T00:00:00');var b=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];return ['Minggu','Senin','Selasa','Rabu','Kamis',"Jum'at",'Sabtu'][d.getDay()]+', '+(+p[2])+' '+b[+p[1]-1]+' '+p[0]}
 function fmtWaktu(a,b){a=(a||'').replace(':','.');b=(b||'').replace(':','.');return a&&b?a+' – '+b:a||b}
 function kv(l,v){return '<tr><td>'+l+'</td><td>:</td><td>'+v+'</td></tr>'}
-function ed(g,i,f,ph,mh){return '<div class="edw"><div class="tb">'+TBH+'</div><div class="ed" contenteditable="true" style="min-height:'+mh+'px" data-g="'+g+'" data-i="'+i+'" data-f="'+f+'" data-ph="'+ph+'"></div></div>'}
-function hydrate(){document.querySelectorAll('.ed').forEach(function(el){var g=el.dataset.g,f=el.dataset.f,v=g?(S[g][+el.dataset.i]||{})[f]:S[f];el.innerHTML=v||''})}
+function ed(g,i,f,ph,mh,j){return '<div class="edw"><div class="tb">'+TBH+'</div><div class="ed" contenteditable="true" style="min-height:'+mh+'px" data-g="'+g+'" data-i="'+i+'" data-f="'+f+'"'+(j==null?'':' data-j="'+j+'"')+' data-ph="'+ph+'"></div></div>'}
+function hydrate(){document.querySelectorAll('.ed').forEach(function(el){var g=el.dataset.g,f=el.dataset.f,v;
+ if(g){var o=S[g][+el.dataset.i]||{};if(el.dataset.j!==undefined)o=(o.items||[])[+el.dataset.j]||{};v=o[f]}else v=S[f];el.innerHTML=v||''})}
+function migQa(){S.qa=(S.qa||[]).map(function(q){return q.items?q:{n:q.n,items:[{q:q.q||'',m:q.m||'',a:q.a||'',nj:false}]}})}
+function qaHtml(){return S.qa.map(function(q,i){var it=q.items||[];
+ return '<div class="blk">'+it.map(function(t,j){
+  return '<div class="qg">'
+  +(j===0?'<input value="'+esc(q.n)+'" placeholder="Penanya" oninput="S.qa['+i+'].n=this.value;upd()">':'<span class="mu">Pertanyaan '+(j+1)+'</span>')
+  +ed('qa',i,'q','Pertanyaan'+(it.length>1?' '+(j+1):''),50,j)
+  +(t.nj?'':'<input value="'+esc(t.m)+'" placeholder="Penjawab" oninput="S.qa['+i+'].items['+j+'].m=this.value;upd()">'+ed('qa',i,'a','Jawaban',50,j))
+  +'<label class="nj"><input type="checkbox" '+(t.nj?'checked':'')+' onchange="S.qa['+i+'].items['+j+'].nj=this.checked;lists();upd()"> Tidak dijawab</label>'
+  +(it.length>1?'<button onclick="S.qa['+i+'].items.splice('+j+',1);lists();upd()">Hapus pertanyaan '+(j+1)+'</button>':'<span></span>')
+  +'</div>'}).join('')
+ +'<button onclick="S.qa['+i+'].items.push({q:\'\',m:\'\',a:\'\',nj:false});lists();upd()">+ Pertanyaan &amp; jawaban (penanya sama)</button> <button onclick="S.qa.splice('+i+',1);lists();upd()">Hapus penanya</button></div>'}).join('')}
 function lists(){
  $('bhList').innerHTML=S.bh.map(function(b,i){return '<div class="blk"><div class="r2"><input value="'+esc(b.t)+'" placeholder="Topik pembahasan" oninput="S.bh['+i+'].t=this.value;upd()"><input value="'+esc(b.p)+'" placeholder="Pembicara" oninput="S.bh['+i+'].p=this.value;upd()"></div>'+ed('bh',i,'i','Isi pembahasan',130)+'<button onclick="S.bh.splice('+i+',1);lists();upd()">Hapus topik</button></div>'}).join('');
- $('qaList').innerHTML=S.qa.map(function(q,i){return '<div class="blk"><input value="'+esc(q.n)+'" placeholder="Penanya" oninput="S.qa['+i+'].n=this.value;upd()">'+ed('qa',i,'q','Pertanyaan',60)+'<input style="margin-top:6px" value="'+esc(q.m)+'" placeholder="Penjawab" oninput="S.qa['+i+'].m=this.value;upd()">'+ed('qa',i,'a','Jawaban',60)+'<button onclick="S.qa.splice('+i+',1);lists();upd()">Hapus</button></div>'}).join('');
+ $('qaList').innerHTML=qaHtml();
  $('actList').innerHTML=S.act.map(function(a,i){return '<div class="blk"><input value="'+esc(a.t)+'" placeholder="Tindak lanjut" oninput="S.act['+i+'].t=this.value;upd()"><div class="r2" style="margin-top:6px"><input value="'+esc(a.p)+'" placeholder="Penanggung jawab" oninput="S.act['+i+'].p=this.value;upd()"><input value="'+esc(a.d)+'" placeholder="Tenggat" oninput="S.act['+i+'].d=this.value;upd()"></div><button onclick="S.act.splice('+i+',1);lists();upd()">Hapus</button></div>'}).join('');
  hydrate()}
 function addBh(){S.bh.push({t:'',p:'',i:''});lists();upd()}
-function addQa(){S.qa.push({n:'',q:'',m:'',a:''});lists();upd()}
+function addQa(){S.qa.push({n:'',items:[{q:'',m:'',a:'',nj:false}]});lists();upd()}
 function addAct(){S.act.push({t:'',p:'',d:''});lists();upd()}
 function flush(){clearTimeout(tmr);if(!dirty||!cur)return Promise.resolve();dirty=false;
  var o=Object.assign({},S,{id:cur.id,img:IMG,updated:Date.now()});
@@ -270,22 +297,26 @@ function flush(){clearTimeout(tmr);if(!dirty||!cur)return Promise.resolve();dirt
 function upd(){F.forEach(function(f){S[f]=$(f).value});render();dirty=true;$('st').textContent='Menyimpan…';clearTimeout(tmr);tmr=setTimeout(flush,900)}
 function idr(l,v,w){return '<div class="ir"><span class="il" style="width:'+w+'">'+l+'</span><span class="ic">:</span><div class="iv">'+v+'</div></div>'}
 function render(){
- var bh=S.bh.filter(function(b){return b.t||b.p||T(b.i)}),qa=S.qa.filter(function(q){return q.n||q.m||T(q.q)||T(q.a)}),ac=S.act.filter(function(a){return a.t||a.p||a.d});
+ var bh=S.bh.filter(function(b){return b.t||b.p||T(b.i)}),qa=S.qa.filter(function(q){return q.n||(q.items||[]).some(function(t){return T(t.q)||(!t.nj&&(t.m||T(t.a)))})}),ac=S.act.filter(function(a){return a.t||a.p||a.d});
  var c='';
  bh.forEach(function(b,i){c+='<div class="hd">'+String.fromCharCode(65+i%26)+'. '+esc(b.t)+(b.p?' – '+esc(b.p):'')+'</div><div class="rt">'+(b.i||'')+'</div>'});
- if(qa.length)c+='<div class="sec">Tanya Jawab</div>'+qa.map(function(q,i){var r='';
-  if(q.n)r+=kv('Penanya',esc(q.n));if(T(q.q))r+=kv('Pertanyaan','<div class="rt">'+q.q+'</div>');
-  if(q.m)r+=kv('Penjawab',esc(q.m));if(T(q.a))r+=kv('Jawaban','<div class="rt">'+q.a+'</div>');
-  return '<div class="qa"><b>'+(i+1)+'.</b><table class="kv">'+r+'</table></div>'}).join('');
+ if(qa.length)c+='<div class="sec">Tanya Jawab</div>'+qa.map(function(q,i){
+  var it=(q.items||[]).filter(function(t){return T(t.q)||(!t.nj&&(t.m||T(t.a)))}),n=(i+1)+'.',nm=q.n?esc(q.n):'';
+  function ans(t){if(t.nj)return '<div class="rt in qans"><b>Jawaban:</b> <i>Tidak dijawab</i></div>';
+   return T(t.a)?'<div class="rt in qans"><b>Jawaban'+(t.m?' ('+esc(t.m)+')':'')+':</b> '+t.a+'</div>':''}
+  if(it.length<2){var t=it[0]||{};
+   return '<div class="qa"><div class="rt in"><b>'+n+(nm?' '+nm+':':'')+'</b> '+(T(t.q)?t.q:'')+'</div>'+ans(t)+'</div>'}
+  return '<div class="qa"><div><b>'+n+(nm?' '+nm:'')+'</b></div>'+it.map(function(t,j){
+   return '<div class="qi"><b class="qk">'+String.fromCharCode(97+j%26)+'.</b><div class="qb">'+(T(t.q)?'<div class="rt">'+t.q+'</div>':'')+ans(t)+'</div></div>'}).join('')+'</div>'}).join('');
  if(T(S.kesimpulan))c+='<div class="sec">Kesimpulan / Keputusan Rapat</div><div class="rt">'+S.kesimpulan+'</div>';
  if(ac.length)c+='<div class="sec">Tindak Lanjut</div><table><tr><th style="width:26px">No</th><th>Kegiatan</th><th>Penanggung Jawab</th><th>Tenggat</th></tr>'+ac.map(function(a,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(a.t)+'</td><td>'+esc(a.p)+'</td><td>'+esc(a.d)+'</td></tr>'}).join('')+'</table>';
  if(T(S.rencana))c+='<div class="sec">Rencana Rapat Berikutnya</div><div class="rt">'+S.rencana+'</div>';
- var nt='<div class="pg"><table><tr><th class="tt" colspan="2">'+esc(S.judulform)+'</th></tr>'
+ var nt='<div class="pg"><table class="bd"><tr><th class="tt" colspan="2">'+esc(S.judulform)+'</th></tr>'
  +'<tr class="id"><td colspan="2">'+idr('NAMA RAPAT',esc(S.nama),'8.5em')+'</td></tr>'
- +'<tr class="id"><td>'+idr('HARI/TANGGAL',esc(fmtTgl(S.tgl)),'8.5em')+'</td><td>'+idr('WAKTU',esc(fmtWaktu(S.mulai,S.selesai)),'12.5em')+'</td></tr>'
- +'<tr class="id"><td>'+idr('TEMPAT',esc(S.tempat),'8.5em')+'</td><td>'+idr('JUMLAH PESERTA HADIR',esc(S.jml)+(S.jml?' Orang':''),'12.5em')+'</td></tr>'
+ +'<tr class="id"><td>'+idr('HARI/TANGGAL',esc(fmtTgl(S.tgl)),'8.5em')+'</td><td>'+idr('WAKTU',esc(fmtWaktu(S.mulai,S.selesai)),'9em')+'</td></tr>'
+ +'<tr class="id"><td>'+idr('TEMPAT',esc(S.tempat),'8.5em')+'</td><td>'+idr('JUMLAH PESERTA',esc(S.jml)+(S.jml?' Orang':''),'9em')+'</td></tr>'
  +'<tr class="id"><td colspan="2">'+idr('AGENDA','<div class="rt">'+(S.agenda||'')+'</div>','8.5em')+'</td></tr>'
- +(c?'<tr><td colspan="2">'+c+'</td></tr>':'')
+ +'</table>'+(c?'<div class="bx">'+c+'</div>':'')+'<table class="bd t3">'
  +'<tr class="sg"><td>NOTULEN<div class="sp"></div>'+(S.nmNotulen?'<u>'+esc(S.nmNotulen)+'</u>':'')+'</td><td>KEPALA SEKOLAH SD ALAM BANDUNG<div class="sp"></div>'+(S.nmKepsek?'<u>'+esc(S.nmKepsek)+'</u>':'')+'</td></tr></table></div>';
  var h='';if(IMG.att.length)h+='<div class="pg att"><div class="lamp">Daftar Hadir</div>'+IMG.att.map(function(a){return '<img src="'+a.s+'">'}).join('')+'</div>';
  h+=nt;
@@ -320,7 +351,7 @@ function bind(id,k){$(id).addEventListener('change',function(e){
 function fill(){F.forEach(function(f){$(f).value=S[f]||''})}
 function view(e){$('home').hidden=e;$('edit').hidden=!e;$('h1').hidden=e;$('h2').hidden=!e;window.scrollTo(0,0)}
 function mode(m){$('fm').hidden=!!m;$('pv').hidden=!m;$('bIsi').className=m?'':'p';$('bPv').className=m?'p':'';window.scrollTo(0,0)}
-function openS(){if(!S.bh)S.bh=[];if(!S.qa)S.qa=[];if(!S.act)S.act=[];if(!S.judulform)S.judulform=DEF;fill();lists();thumbs();render();dirty=false;mode(0);view(true)}
+function openS(){migQa();if(!S.bh)S.bh=[];if(!S.qa)S.qa=[];if(!S.act)S.act=[];if(!S.judulform)S.judulform=DEF;fill();lists();thumbs();render();dirty=false;mode(0);view(true)}
 function newDoc(){cur={id:'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)};S=blank();IMG={att:[],doc:[]};openS();$('st').textContent='Belum ada isi'}
 function openDoc(id){cur={id:id};S=JSON.parse(JSON.stringify(DOCS[id]));IMG=S.img||{att:[],doc:[]};delete S.img;delete S.updated;delete S.id;openS();$('st').textContent='Tersimpan ✓'}
 function back(){flush().then(loadHome).then(function(){view(false)})}
@@ -343,7 +374,7 @@ $('fr').addEventListener('change',function(e){var f=e.target.files[0];e.target.v
    return tx('readwrite',function(s){n.forEach(function(x){s.put(x)})}).then(function(){$('hmsg2').textContent=n.length+' notulensi dipulihkan, '+(a.length-n.length)+' dilewati karena sudah ada versi yang lebih baru.';loadHome()})}).catch(function(){$('hmsg2').textContent='Gagal memulihkan cadangan.'})};
  r.readAsText(f)});
 document.addEventListener('input',function(e){var el=e.target;if(el.classList&&el.classList.contains('ed'))arrowFix(e);
- if(el.classList&&el.classList.contains('ed')){var g=el.dataset.g,f=el.dataset.f,h=clean(el.innerHTML);if(g)S[g][+el.dataset.i][f]=h;else S[f]=h;upd()}});
+ if(el.classList&&el.classList.contains('ed')){var g=el.dataset.g,f=el.dataset.f,h=clean(el.innerHTML);if(g){var o=S[g][+el.dataset.i];if(el.dataset.j!==undefined)o=o.items[+el.dataset.j];o[f]=h}else S[f]=h;upd()}});
 document.addEventListener('paste',function(e){var el=e.target.closest&&e.target.closest('.ed');if(!el)return;
  e.preventDefault();var d=e.clipboardData,h=d.getData('text/html'),t=d.getData('text/plain');
  document.execCommand('insertHTML',false,h?clean(h):esc(t).replace(/\n/g,'<br>'))});
@@ -353,6 +384,12 @@ document.addEventListener('mousedown',function(e){if(P.hidden||P.contains(e.targ
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){P.hidden=true;return}
  if(e.key!=='Tab')return;var el=e.target.closest&&e.target.closest('.ed');if(!el||!curLI())return;
  e.preventDefault();ind(e.shiftKey?'outdent':'indent')});
+function exitList(li){var L=li.parentNode,nested=L.parentNode&&L.parentNode.closest&&L.parentNode.closest('li');
+ if(nested)ind('outdent');else{ex(L.tagName==='UL'?'insertUnorderedList':'insertOrderedList');var e=curED();if(e)e.dispatchEvent(new Event('input',{bubbles:true}))}}
+function atStart(li,s){var r=document.createRange();r.selectNodeContents(li);r.setEnd(s.anchorNode,s.anchorOffset);return r.toString()===''}
+document.addEventListener('keydown',function(e){var el=e.target.closest&&e.target.closest('.ed');if(!el||e.isComposing)return;
+ if(e.key==='Enter'&&!e.shiftKey){var li=curLI();if(li&&!li.textContent.replace(/\u200b/g,'').trim()&&!li.querySelector('li')){e.preventDefault();exitList(li)}}
+ else if(e.key==='Backspace'){var s=getSelection();if(s.rangeCount&&s.isCollapsed){var l2=curLI();if(l2&&atStart(l2,s)){e.preventDefault();exitList(l2)}}}});
 document.querySelectorAll('.slot').forEach(function(s){s.outerHTML=ed('','',s.dataset.f,s.dataset.ph,s.dataset.mh)});
 F.forEach(function(f){$(f).addEventListener('input',upd)});
 window.addEventListener('pagehide',flush);
