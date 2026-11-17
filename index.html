@@ -41,7 +41,7 @@ input[type=text],input[type=date],input[type=time],input[type=number],input:not(
 @media(max-width:600px){.qg{grid-template-columns:1fr}}
 .tb .cv{padding:1px 4px;margin-left:-4px;border-radius:0 6px 6px 0}
 .hlA{font-weight:bold;border-bottom:3px solid var(--hc,#fff176);padding:0 2px;line-height:1}
-#pop{position:absolute;z-index:50;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:310px}
+#pop{position:fixed;overflow:auto;z-index:50;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:310px}
 #pop .g{display:flex;flex-wrap:wrap;gap:4px}
 #pop button{padding:3px 8px;font-size:14px;min-width:34px}
 #pop .c{width:26px;height:26px;padding:0;border-radius:50%;border:1px solid #888;min-width:0}
@@ -87,6 +87,9 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .qi{display:flex;gap:.4em;margin-left:2em}
 .qk{flex:none}
 .qb{flex:1;min-width:0}
+.qaw{display:grid;grid-template-columns:fit-content(45%) auto 1fr;align-items:start}
+.qc{padding:0 .4em 0 .15em}
+.qaw .ql{max-width:none}
 .aw{display:flex;gap:4px;align-items:flex-start}
 .aw button{padding:1px 6px;font-size:12px}
 .ab{display:flex;gap:6px;flex-wrap:wrap}
@@ -265,7 +268,7 @@ function walk(n){var o='',k=n.childNodes,i=0;
     if(bg&&bg!=='transparent'&&/^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\)|[a-z]+)$/i.test(bg))s='<span style="background-color:'+bg+'">'+s+'</span>';
     o+=s}
    else if(t==='BR')o+='<br>';
-   else if(OK[t]){var g=t.toLowerCase();o+='<'+g+((isl&&!LD)?lat(c,t):'')+((t==='TD'||t==='TH')?cat(c):'')+'>'+s+'</'+g+'>'}
+   else if(OK[t]){var g=t.toLowerCase();o+='<'+g+((isl&&!LD)?lat(c,t):'')+((t==='TD'||t==='TH')?cat(c):'')+((t==='LI'&&parseInt(c.getAttribute('value'),10)>0)?' value="'+parseInt(c.getAttribute('value'),10)+'"':'')+'>'+s+'</'+g+'>'}
    else o+=s}
   i++}
  return o}
@@ -295,16 +298,21 @@ function pop(k,b){if(!P.hidden&&P._b===b){P.hidden=true;return}
  else if(k==='n')h='<div class="g">'+NMK.map(function(m,i){return '<button onclick="lc(\'ol\','+i+')">'+m+'</button>'}).join('')+'</div>';
  else if(k==='h')h='<div class="g">'+HC.map(function(c){return '<button class="c" title="'+c[1]+'" style="background:'+c[0]+'" onclick="pickHl(\''+c[0]+'\')"></button>'}).join('')+'</div><div class="g" style="margin-top:6px"><button onclick="pickHl(\'transparent\')">Tanpa sorot</button></div>';
  else if(k==='t')h=tblHtml();else h='<div class="g">'+SY.map(function(m,i){return '<button onclick="sy('+i+')">'+m+'</button>'}).join('')+'</div>';
- P.innerHTML=h;P._b=b;P.hidden=false;
- var r=b.getBoundingClientRect(),w=P.offsetWidth,x=Math.max(4,Math.min(r.left,document.documentElement.clientWidth-w-4));
- P.style.left=(x+window.scrollX)+'px';P.style.top=(r.bottom+window.scrollY+4)+'px'}
+ P.innerHTML=h;P._b=b;P.hidden=false;P.style.maxHeight=(innerHeight-16)+'px';
+ var r=b.getBoundingClientRect(),w=P.offsetWidth,hh=P.offsetHeight,x=Math.max(4,Math.min(r.left,document.documentElement.clientWidth-w-4)),y=r.bottom+4;
+ if(y+hh>innerHeight-8){y=r.top-hh-4;if(y<8)y=Math.max(8,innerHeight-hh-8)}
+ P.style.left=x+'px';P.style.top=y+'px'}
+function lineStart(n){var x=n;
+ for(;;){var p=x.previousSibling;
+  if(!p){var q=x.parentNode;if(q&&!q.classList.contains('ed')&&!/^(DIV|P|BLOCKQUOTE|LI|TD|TH)$/.test(q.tagName)){x=q;continue}break}
+  if(p.nodeType===1&&/^(BR|DIV|P|UL|OL|TABLE|BLOCKQUOTE|LI|H\d)$/.test(p.tagName))break;
+  x=p}
+ return x}
 function listFix(e){
  if(e.inputType!=='insertText'||!/^[ \u00a0]$/.test(e.data||''))return;
  var s=getSelection();if(!s.rangeCount||!s.isCollapsed)return;
  var n=s.anchorNode,o=s.anchorOffset;if(!n||n.nodeType!==3||curLI())return;
- var b=n.parentNode;while(b&&!b.classList.contains('ed')&&!/^(DIV|P|BLOCKQUOTE)$/.test(b.tagName))b=b.parentNode;
- if(!b)return;
- var r=document.createRange();r.selectNodeContents(b);r.setEnd(n,o);
+ var r=document.createRange();r.setStartBefore(lineStart(n));r.setEnd(n,o);
  var t=r.toString().replace(/[ \u00a0]$/,''),m,ty=null,N=1;
  if(m=/^(\d{1,3})[.)]$/.exec(t)){ty='decimal';N=+m[1]}
  else if(m=/^([a-z])[.)]$/.exec(t)){ty='lower-alpha';N=m[1].charCodeAt(0)-96}
@@ -313,12 +321,23 @@ function listFix(e){
  if(!ty)return;
  s.removeAllRanges();s.addRange(r);document.execCommand('delete');
  ex(ty==='ul'?'insertUnorderedList':'insertOrderedList');
- var li=curLI();if(!li)return;var L=li.parentNode;
- if(ty!=='ul'){L.style.listStyleType=ty;if(N>1)L.setAttribute('start',N)}
+ var li=curLI();if(!li)return;var L=li.parentNode,tag=ty==='ul'?'UL':'OL',lis=function(l){return[].filter.call(l.children,function(c){return c.tagName==='LI'})};
+ if(lis(L)[0]!==li){
+  if(ty!=='ul'){var e0=(parseInt(L.getAttribute('start'),10)||1)+lis(L).indexOf(li);if(N!==e0)li.setAttribute('value',N)}
+ }else{
+  var pv=L.previousElementSibling;
+  if(pv&&pv.tagName===tag&&(ty==='ul'||(N===(parseInt(pv.getAttribute('start'),10)||1)+lis(pv).length&&getComputedStyle(pv).listStyleType===ty))){
+   pv.appendChild(li);L.remove();var rg=document.createRange();rg.selectNodeContents(li);rg.collapse(true);s.removeAllRanges();s.addRange(rg)}
+  else if(ty!=='ul'){L.style.listStyleType=ty;if(N>1)L.setAttribute('start',N)}}
  var d=curED();if(d)d.dispatchEvent(new Event('input',{bubbles:true}))}
 function curCell(){var e=curED(),s=getSelection(),n=e&&s.anchorNode;n=n&&(n.nodeType===3?n.parentNode:n);return n&&n.closest?n.closest('td,th'):null}
 function cellsOf(tb){var a=[];[].forEach.call(tb.rows,function(r){[].forEach.call(r.cells,function(c){a.push(c)})});return a}
-function selCells(c){var tb=c.closest('table'),s=getSelection();if(!s.rangeCount||s.isCollapsed)return[c];var r=s.getRangeAt(0),a=cellsOf(tb).filter(function(x){return r.intersectsNode(x)});return a.length?a:[c]}
+function selCells(c){var tb=c.closest('table'),s=getSelection();if(!s.rangeCount||s.isCollapsed)return[c];
+ function cl(n){n=n&&(n.nodeType===3?n.parentNode:n);return n&&n.closest?n.closest('td,th'):null}
+ var a=cl(s.anchorNode),f=cl(s.focusNode);if(!a||!f||a===f||a.closest('table')!==tb||f.closest('table')!==tb)return[c];
+ var g=tmap(tb),pa=tpos(g,a),pf=tpos(g,f),r1=Math.min(pa.r,pf.r),r2=Math.max(pa.r+a.rowSpan-1,pf.r+f.rowSpan-1),c1=Math.min(pa.c,pf.c),c2=Math.max(pa.c+a.colSpan-1,pf.c+f.colSpan-1),out=[];
+ for(var r=r1;r<=r2;r++)for(var k=c1;k<=c2;k++){var x=(g[r]||[])[k];if(x&&out.indexOf(x)<0)out.push(x)}
+ return out}
 function tmap(tb){var g=[];[].forEach.call(tb.rows,function(tr,r){g[r]=g[r]||[];var c=0;[].forEach.call(tr.cells,function(td){while(g[r][c])c++;for(var i=0;i<td.rowSpan;i++){g[r+i]=g[r+i]||[];for(var j=0;j<td.colSpan;j++)g[r+i][c+j]=td}c+=td.colSpan})});return g}
 function tpos(g,td){for(var r=0;r<g.length;r++)for(var c=0;c<(g[r]||[]).length;c++)if(g[r][c]===td)return{r:r,c:c};return{r:0,c:0}}
 function mergeCells(cs){if(cs.length<2)return false;var tb=cs[0].closest('table'),g=tmap(tb),r1=1e9,c1=1e9,r2=-1,c2=-1;
@@ -333,17 +352,17 @@ function splitCell(c){var tb=c.closest('table'),g=tmap(tb),p=tpos(g,c),cs=c.colS
   for(var j=p.c+cs;j<(g[p.r+i]||[]).length&&!ref;j++){var x=g[p.r+i][j];if(x&&x.parentNode===row&&x!==c)ref=x}
   for(var k=0;k<cs;k++){if(i===0&&k===0)continue;var d=document.createElement('td');d.innerHTML='<br>';row.insertBefore(d,ref)}}
  c.colSpan=1;c.rowSpan=1;return true}
-function tgh(r,c){document.querySelectorAll('#pop .tg i').forEach(function(x){x.className=(+x.dataset.r<=r&&+x.dataset.c<=c)?'on':''});$('tgl').textContent=r+' baris × '+c+' kolom'}
-function tblHtml(){var h='<div class="t">Sisipkan tabel</div><div class="tg">';
- for(var r=1;r<=6;r++)for(var c=1;c<=8;c++)h+='<i data-r="'+r+'" data-c="'+c+'" onmouseover="tgh('+r+','+c+')" onclick="tblIns('+r+','+c+')"></i>';
- h+='</div><div class="mu" id="tgl">Pilih ukuran tabel</div><label class="mu" style="display:flex;gap:4px;align-items:center;margin:4px 0"><input type="checkbox" id="tbh" checked style="width:auto;padding:0"> Baris pertama sebagai judul</label>';
- var cc=curCell();P._c=null;
- if(cc){P._c=cc;P._sel=selCells(cc);P._d=curED();var tb=cc.closest('table'),w=(cc.style.width||'').replace('%',''),pc=w?Math.round(parseFloat(w)):Math.round(cc.offsetWidth/tb.offsetWidth*100);
-  h+='<hr><div class="t">Baris dan kolom</div><div class="g"><button onclick="tAct(\'r\')">+ Baris</button><button onclick="tAct(\'c\')">+ Kolom</button><button onclick="tAct(\'dr\')">Hapus baris</button><button onclick="tAct(\'dc\')">Hapus kolom</button><button onclick="tAct(\'dt\')">Hapus tabel</button></div>'
+function tgh(r,c){document.querySelectorAll('#pop .tg i').forEach(function(x){x.className=(+x.dataset.r<=r&&+x.dataset.c<=c)?'on':''});$('tgl').textContent=r?r+' baris × '+c+' kolom':'Pilih ukuran tabel'}
+function tblHtml(){var cc=curCell(),grid='<div class="tg" onmouseleave="tgh(0,0)">';
+ for(var r=1;r<=6;r++)for(var c=1;c<=8;c++)grid+='<i data-r="'+r+'" data-c="'+c+'" onmouseover="tgh('+r+','+c+')" onclick="tblIns('+r+','+c+')"></i>';
+ grid+='</div><div class="mu" id="tgl">Pilih ukuran tabel</div><label class="mu" style="display:flex;gap:4px;align-items:center;margin:4px 0"><input type="checkbox" id="tbh" checked style="width:auto;padding:0"> Baris pertama sebagai judul</label>';
+ P._c=null;if(!cc)return '<div class="t">Sisipkan tabel</div>'+grid;
+ P._c=cc;P._sel=selCells(cc);P._d=curED();var tb=cc.closest('table'),w=(cc.style.width||'').replace('%',''),pc=w?Math.round(parseFloat(w)):Math.round(cc.offsetWidth/tb.offsetWidth*100);
+ return '<div class="mu" id="tmsg" style="color:#b3261e"></div><div class="t">Baris dan kolom</div><div class="g"><button onclick="tAct(\'r\')">+ Baris</button><button onclick="tAct(\'c\')">+ Kolom</button><button onclick="tAct(\'dr\')">Hapus baris</button><button onclick="tAct(\'dc\')">Hapus kolom</button><button onclick="tAct(\'dt\')">Hapus tabel</button></div>'
   +'<div class="t">Gabung sel (seret untuk memilih beberapa sel)</div><div class="g"><button onclick="tAct(\'ms\')">Gabung terpilih</button><button onclick="tAct(\'mr\')">Gabung ke kanan</button><button onclick="tAct(\'md\')">Gabung ke bawah</button><button onclick="tAct(\'sp\')">Pisahkan sel</button></div>'
   +'<div class="t">Lebar kolom ini</div><div class="g" style="align-items:center"><input type="number" id="tcw" min="5" max="95" step="5" value="'+pc+'" style="width:64px;padding:2px 4px"> %<button onclick="tW()">Atur</button><button onclick="tAct(\'eq\')">Samakan semua</button></div>'
-  +'<div class="t">Warna latar sel</div><div class="g">'+HC.map(function(x){return '<button class="c" title="'+x[1]+'" style="background:'+x[0]+'" onclick="tBg(\''+x[0]+'\')"></button>'}).join('')+'<button onclick="tBg(\'\')">Tanpa warna</button></div>'}
- return h}
+  +'<div class="t">Warna latar sel</div><div class="g">'+HC.map(function(x){return '<button class="c" title="'+x[1]+'" style="background:'+x[0]+'" onclick="tBg(\''+x[0]+'\')"></button>'}).join('')+'<button onclick="tBg(\'\')">Tanpa warna</button></div>'
+  +'<hr><button onclick="var w=$(\'tgw\');w.hidden=!w.hidden">Sisipkan tabel baru ▾</button><div id="tgw" hidden>'+grid+'</div>'}
 function tblIns(r,c){var d=curED();if(!d)return;var hd=$('tbh')&&$('tbh').checked,h='<table data-new="1">';
  for(var i=0;i<r;i++){h+='<tr>';for(var j=0;j<c;j++)h+=(i===0&&hd?'<th><br></th>':'<td><br></td>');h+='</tr>'}
  h+='</table><div><br></div>';document.execCommand('insertHTML',false,h);P.hidden=true;
@@ -365,12 +384,12 @@ function tAct(a,cell){var c=tctx(cell);if(!c)return;var d=c.closest('.ed'),tr=c.
  else if(a==='dr'){if(tb.rows.length<2)tb.remove();else if([].some.call(tr.cells,function(x){return x.rowSpan>1}))ok=false;else{var sn=[];(g[p.r]||[]).forEach(function(x){if(x&&x.parentNode!==tr&&sn.indexOf(x)<0){sn.push(x);x.rowSpan--}});tr.remove()}}
  else if(a==='dc'){var set=[];g.forEach(function(row){var x=row&&row[p.c];if(x&&set.indexOf(x)<0)set.push(x)});if(g[0].length<2)tb.remove();else set.forEach(function(x){if(x.colSpan>1)x.colSpan--;else x.remove()})}
  else if(a==='dt')tb.remove();
- else if(a==='ms')ok=mergeCells((P._sel&&P._sel.length>1&&!P.hidden)?P._sel:[c]);
+ else if(a==='ms'){var sl=(P._sel&&!P.hidden)?P._sel:[c];if(sl.length<2){if($('tmsg'))$('tmsg').textContent='Seret mouse untuk memilih beberapa sel dulu, atau pakai Gabung ke kanan / bawah.';return}ok=mergeCells(sl)}
  else if(a==='mr')ok=mergeDir(c,'r');
  else if(a==='md')ok=mergeDir(c,'d');
  else if(a==='sp')ok=splitCell(c);
  else if(a==='eq'){var nc=g[0].length;cellsOf(tb).forEach(function(x){x.style.width=(100/nc*x.colSpan).toFixed(1)+'%'})}
- if(!ok){if($('tgl'))$('tgl').textContent='Aksi ini tidak dapat dilakukan pada bentuk sel tersebut.';return}
+ if(!ok){if($('tmsg'))$('tmsg').textContent='Aksi ini tidak dapat dilakukan pada bentuk sel tersebut. Pilih sel yang membentuk persegi.';return}
  tDone()}
 var AR={'-->':'→','->':'→','<--':'←','<-':'←','==>':'⇒'};
 function arrowFix(e){if(e.inputType!=='insertText'||!/^[ \u00a0]$/.test(e.data||''))return;
@@ -417,8 +436,9 @@ function render(){
  bh.forEach(function(b,i){c+='<div class="hd">'+String.fromCharCode(65+i%26)+'. '+esc(b.t)+(b.p?' – '+esc(b.p):'')+'</div><div class="rt">'+(b.i||'')+'</div>'});
  if(qa.length)c+='<div class="sec">Tanya Jawab</div>'+qa.map(function(q,i){
   var it=(q.items||[]).filter(function(t){return T(t.q)||(!t.nj&&(t.ans||[]).some(function(a){return a.m||T(a.a)}))}),n=(i+1)+'.',nm=q.n?esc(q.n):'';
-  function ans(t){if(t.nj)return '<div class="qr qans"><b class="ql">Jawaban:</b><div class="rt">-</div></div>';
-   return (t.ans||[]).filter(function(a){return T(a.a)}).map(function(a){return '<div class="qr qans"><b class="ql">Jawaban'+(a.m?' ('+esc(a.m)+')':'')+':</b><div class="rt">'+a.a+'</div></div>'}).join('')}
+  function ans(t){var rows=t.nj?[['Jawaban','-']]:(t.ans||[]).filter(function(a){return T(a.a)}).map(function(a){return['Jawaban'+(a.m?' ('+esc(a.m)+')':''),a.a]});
+   if(!rows.length)return '';
+   return '<div class="qaw qans">'+rows.map(function(r){return '<b class="ql">'+r[0]+'</b><b class="qc">:</b><div class="rt">'+r[1]+'</div>'}).join('')+'</div>'}
   if(it.length<2){var t=it[0]||{};
    return '<div class="qa"><div class="qr"><b class="qn">'+n+'</b>'+(nm?'<b class="ql">'+nm+':</b>':'')+'<div class="rt">'+(T(t.q)?t.q:'')+'</div></div>'+ans(t)+'</div>'}
   return '<div class="qa"><div class="qr"><b class="qn">'+n+'</b>'+(nm?'<b class="ql">'+nm+'</b>':'')+'</div>'+it.map(function(t,j){
@@ -497,6 +517,7 @@ document.addEventListener('paste',function(e){var el=e.target.closest&&e.target.
 P=document.createElement('div');P.id='pop';P.hidden=true;document.body.appendChild(P);
 P.addEventListener('mousedown',function(e){if(e.target.id==='tcw')return;e.preventDefault()});
 document.addEventListener('mousedown',function(e){if(P.hidden||P.contains(e.target))return;var b=e.target.closest&&e.target.closest('.pb');if(!b)P.hidden=true});
+window.addEventListener('scroll',function(){if(!P.hidden)P.hidden=true},{passive:true});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){P.hidden=true;return}
  if(e.key!=='Tab')return;var el=e.target.closest&&e.target.closest('.ed');if(!el||!curLI())return;
  e.preventDefault();ind(e.shiftKey?'outdent':'indent')});
