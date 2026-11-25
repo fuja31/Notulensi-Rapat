@@ -19,6 +19,13 @@ h1{font-size:18px;margin:0}
 .wrap,.home{max-width:900px;margin:auto;padding:16px}
 .item{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;margin-bottom:8px;flex-wrap:wrap}
 .item b{display:block}
+.hf input,.hf select{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:7px 9px}
+.hf{margin-bottom:12px}
+.nbn{margin-bottom:12px;border-left:4px solid #e0a000}
+.nbn.ok{border-left-color:var(--ac)}
+.gh{font-size:13px;color:var(--ac);margin:14px 0 6px}
+.snip{display:block;margin-top:2px}
+mark.hm{background:#fff176;color:#000;padding:0 1px;border-radius:2px}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px}
 label{display:block;font-size:12px;color:var(--mu);margin:10px 0 3px}
 input[type=text],input[type=date],input[type=time],input[type=number],input:not([type]){width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:7px 9px}
@@ -64,6 +71,9 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 .th img{width:100%;height:80px;object-fit:cover;border-radius:4px;display:block;margin-bottom:4px}
 .th input{padding:3px 5px;font-size:12px}
 .th button{padding:2px 6px;font-size:12px;margin-top:4px}
+.tbr{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px}
+.tbr button{margin-top:0;padding:1px 6px}
+.th button:disabled{opacity:.35;cursor:default}
 .paper{background:#fff;color:#000;font:13px/1.55 "Times New Roman",Times,serif;border:1px solid var(--bd)}
 .pg{padding:28px}
 .pg+.pg{border-top:2px dashed #bbb}
@@ -158,11 +168,21 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 </header>
 <div class="home" id="home">
  <p class="mu" id="hmsg"></p>
+ <div class="card nbn" id="nbn" hidden></div>
+ <div class="card hf" id="hf" hidden><input id="q" type="text" placeholder="Cari nama rapat, tempat, pembicara, atau isi notulensi…" oninput="renderList()" autocomplete="off"><div class="r2" style="margin-top:8px"><select id="fy" onchange="renderList()"><option value="">Semua tahun ajaran</option></select><select id="fs" onchange="renderList()"><option value="tgl">Urut: tanggal rapat (terbaru)</option><option value="upd">Urut: terakhir diubah</option><option value="nama">Urut: nama rapat (A–Z)</option></select></div><div class="mu" style="margin-top:6px"><span id="hcount"></span> <button id="hclr" hidden style="padding:2px 10px;font-size:12px" onclick="clearF()">Hapus filter</button></div></div>
  <div id="hl"></div>
+ <details class="card" id="dfl" style="margin-top:16px"><summary><b>Isian bawaan notulensi baru</b></summary>
+  <p class="mu">Diisi sekali; otomatis terisi di setiap notulensi baru. Notulensi yang sudah ada tidak berubah.</p>
+  <div class="r2"><div><label>Judul formulir</label><input id="dj" oninput="dfSave()" placeholder="FORM NOTULENSI RAPAT ..."></div><div><label>Tempat</label><input id="dt" oninput="dfSave()"></div>
+  <div><label>Nama notulen</label><input id="dn" oninput="dfSave()"></div><div><label>Nama kepala sekolah</label><input id="dk" oninput="dfSave()"></div></div>
+  <label>Ukuran huruf dokumen</label><select id="df" onchange="dfSave()" style="font:inherit;padding:4px 8px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:6px"><option value="">Bawaan (10 pt)</option><option value="10">10 pt</option><option value="11">11 pt</option><option value="12">12 pt</option></select>
+  <span class="mu" id="dfs"></span></details>
  <div class="card" style="margin-top:16px">
   <b>Cadangan data</b>
   <p class="mu">Notulensi tersimpan di browser perangkat ini saja. Unduh cadangan secara berkala; file cadangan bisa dipulihkan di perangkat atau browser lain.</p>
   <p class="mu" id="nb"></p>
+  <div class="mu" style="margin:6px 0">Ingatkan saya setiap <select id="nbi" onchange="ls('nbi',this.value);loadHome()" style="font:inherit;padding:2px 6px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:6px"><option value="3">3 hari</option><option value="7">7 hari</option><option value="14">14 hari</option><option value="30">30 hari</option></select> bila ada notulensi yang baru atau berubah.</div>
+  <label class="mu" style="display:flex;gap:6px;align-items:flex-start;margin:6px 0"><input type="checkbox" id="nba" style="width:auto;padding:0;margin-top:3px" onchange="ls('nba',this.checked?'1':'0')"> Unduh cadangan otomatis ke folder Downloads saat aplikasi dibuka, jika sudah waktunya</label>
   <button onclick="backup()">⬇ Cadangkan semua</button>
   <button onclick="$('fr').click()">⬆ Pulihkan dari cadangan</button>
   <input type="file" id="fr" accept=".json,application/json" hidden>
@@ -202,16 +222,16 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
   </div>
   <h2>1. Daftar hadir (tanda tangan)</h2>
   <p class="mu">Unggah foto atau scan lembar daftar hadir bertanda tangan, gambar (JPG/PNG) atau PDF. Dicetak di halaman pertama, sebelum notulensi.</p>
-  <input type="file" id="fAtt" accept="image/*,application/pdf" multiple>
+  <input type="file" id="fAtt" accept="image/*,application/pdf" multiple> <button type="button" onclick="$('fAttCam').click()">📷 Ambil foto</button><input type="file" id="fAttCam" accept="image/*" capture="environment" hidden>
   <div class="th" id="thAtt"></div>
   <h2>2. Dokumentasi (dicetak paling akhir)</h2>
   <p class="mu">Unggah foto kegiatan, boleh banyak. Keterangan foto opsional.</p>
-  <input type="file" id="fDoc" accept="image/*" multiple>
+  <input type="file" id="fDoc" accept="image/*" multiple> <button type="button" onclick="$('fDocCam').click()">📷 Ambil foto</button><input type="file" id="fDocCam" accept="image/*" capture="environment" hidden>
   <div class="th" id="thDoc"></div>
   <p class="mu" id="msg2"></p>
  </div>
  </div>
- <div class="wrap" id="pv" hidden><div class="fsr"><label for="fsz" style="margin:0">Ukuran huruf dokumen:</label><select id="fsz" onchange="S.fs=+this.value;upd()"><option value="10">10 pt</option><option value="11">11 pt</option><option value="12">12 pt</option></select><span class="mu">Berlaku untuk notulensi ini dan ikut tersimpan.</span></div><div class="paper" id="paper"></div></div>
+ <div class="wrap" id="pv" hidden><div class="fsr"><label for="fsz" style="margin:0">Ukuran huruf dokumen:</label><select id="fsz" onchange="S.fs=+this.value;upd()"><option value="10">10 pt</option><option value="11">11 pt</option><option value="12">12 pt</option></select><span class="mu">Berlaku untuk notulensi ini dan ikut tersimpan.</span><span class="mu" style="flex-basis:100%">Nama file PDF saat disimpan: <b id="pdfn"></b></span></div><div class="paper" id="paper"></div></div>
 </div>
 <script>
 var CDNW='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -398,7 +418,22 @@ function arrowFix(e){if(e.inputType!=='insertText'||!/^[ \u00a0]$/.test(e.data||
  var r=document.createRange();r.setStart(n,o-m[0].length);r.setEnd(n,o);s.removeAllRanges();s.addRange(r);
  document.execCommand('insertText',false,AR[m[1]]+' ')}
 function ins(c){document.execCommand('insertText',false,c)}
-function blank(){return{judulform:DEF,bh:[{t:'',p:'',i:''}],qa:[],act:[]}}
+var DFL={},dft;
+function dfFill(){$('dj').value=DFL.judulform||'';$('dn').value=DFL.nmNotulen||'';$('dk').value=DFL.nmKepsek||'';$('dt').value=DFL.tempat||'';$('df').value=DFL.fs||''}
+function dfSave(){clearTimeout(dft);dft=setTimeout(function(){var d={},m={judulform:'dj',nmNotulen:'dn',nmKepsek:'dk',tempat:'dt'};
+ Object.keys(m).forEach(function(k){var v=$(m[k]).value.trim();if(v)d[k]=v});if($('df').value)d.fs=+$('df').value;DFL=d;
+ tx('readwrite',function(s){s.put({id:'_defaults',updated:Date.now(),d:d})});$('dfs').textContent='Tersimpan ✓'},500);$('dfs').textContent='Menyimpan…'}
+function dupMenu(id,b){if(!P.hidden&&P._b===b){P.hidden=true;return}
+ P.innerHTML='<div class="t">Duplikat notulensi</div><div class="g" style="flex-direction:column"><button onclick="dupDoc(\''+id+'\',\'k\')">Salin kerangka<br><span class="mu">judul, tempat, agenda, dan nama topik; isi dikosongkan</span></button><button onclick="dupDoc(\''+id+'\',\'l\')">Salin lengkap<br><span class="mu">semua teks (tanpa foto), tanggal dikosongkan</span></button></div>';
+ P._b=b;P.hidden=false;P.style.maxHeight=(innerHeight-16)+'px';
+ var r=b.getBoundingClientRect(),w=P.offsetWidth,hh=P.offsetHeight,x=Math.max(4,Math.min(r.left,document.documentElement.clientWidth-w-4)),y=r.bottom+4;
+ if(y+hh>innerHeight-8){y=r.top-hh-4;if(y<8)y=Math.max(8,innerHeight-hh-8)}
+ P.style.left=x+'px';P.style.top=y+'px'}
+function dupDoc(id,mode){P.hidden=true;var x=JSON.parse(JSON.stringify(DOCS[id]));if(!x)return;
+ var nid='n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);x.id=nid;x.tgl='';x.img={att:[],doc:[]};x.updated=Date.now();
+ if(mode==='k'){(x.bh||[]).forEach(function(b){b.i=''});x.qa=[];x.kesimpulan='';x.rencana='';x.act=[]}else x.nama=(x.nama||'')+' (salinan)';
+ tx('readwrite',function(s){s.put(x)}).then(loadHome).then(function(){openDoc(nid)})}
+function blank(){return Object.assign({judulform:DEF,bh:[{t:'',p:'',i:''}],qa:[],act:[]},DFL)}
 function fmtTgl(v){if(!v)return'';var p=v.split('-'),d=new Date(v+'T00:00:00');var b=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];return ['Minggu','Senin','Selasa','Rabu','Kamis',"Jum'at",'Sabtu'][d.getDay()]+', '+(+p[2])+' '+b[+p[1]-1]+' '+p[0]}
 function fmtWaktu(a,b){a=(a||'').replace(':','.');b=(b||'').replace(':','.');return a&&b?a+' – '+b:a||b}
 function kv(l,v){return '<tr><td>'+l+'</td><td>:</td><td>'+v+'</td></tr>'}
@@ -457,10 +492,16 @@ function render(){
  var h='';if(IMG.att.length)h+='<div class="pg att">'+IMG.att.map(function(a){return '<img src="'+a.s+'">'}).join('')+'</div>';
  h+=nt;
  if(IMG.doc.length)h+='<div class="pg"><div class="lamp">Dokumentasi</div><div class="doc">'+IMG.doc.map(function(a){return '<figure><img src="'+a.s+'">'+(a.c?'<figcaption>'+esc(a.c)+'</figcaption>':'')+'</figure>'}).join('')+'</div></div>';
- $('paper').style.fontSize=(S.fs||10)+'pt';$('paper').innerHTML=h}
+ $('paper').style.fontSize=(S.fs||10)+'pt';$('paper').innerHTML=h;var pn=$('pdfn');if(pn)pn.textContent=pdfName()}
 function thumbs(){
  ['att','doc'].forEach(function(k){
-  $(k==='att'?'thAtt':'thDoc').innerHTML=IMG[k].map(function(a,i){return '<div><img src="'+a.s+'">'+(k==='doc'?'<input value="'+esc(a.c)+'" placeholder="Keterangan" oninput="IMG.doc['+i+'].c=this.value;upd()">':'')+'<button onclick="IMG.'+k+'.splice('+i+',1);thumbs();upd()">Hapus</button></div>'}).join('')})}
+  $(k==='att'?'thAtt':'thDoc').innerHTML=IMG[k].map(function(a,i){var n=IMG[k].length;
+   return '<div><span class="mu">'+(k==='att'?'Halaman ':'Foto ')+(i+1)+'</span><img src="'+a.s+'">'+(k==='doc'?'<input value="'+esc(a.c)+'" placeholder="Keterangan" oninput="IMG.doc['+i+'].c=this.value;upd()">':'')
+   +'<span class="tbr"><button title="Putar ke kiri" onclick="rot(\''+k+'\','+i+',-1)">↺</button><button title="Putar ke kanan" onclick="rot(\''+k+'\','+i+',1)">↻</button>'
+   +'<button title="Geser ke depan" '+(i?'':'disabled')+' onclick="mv(\''+k+'\','+i+',-1)">◀</button><button title="Geser ke belakang" '+(i<n-1?'':'disabled')+' onclick="mv(\''+k+'\','+i+',1)">▶</button>'
+   +'<button title="Hapus" onclick="IMG.'+k+'.splice('+i+',1);thumbs();upd()">✕</button></span></div>'}).join('')})}
+function rot(k,i,d){var a=IMG[k][i];if(!a)return;var im=new Image();im.onload=function(){var c=document.createElement('canvas');c.width=im.height;c.height=im.width;var x=c.getContext('2d');x.translate(c.width/2,c.height/2);x.rotate(d*Math.PI/2);x.drawImage(im,-im.width/2,-im.height/2);a.s=c.toDataURL('image/jpeg',0.9);thumbs();upd()};im.src=a.s}
+function mv(k,i,d){var a=IMG[k],j=i+d;if(j<0||j>=a.length)return;var t=a[i];a[i]=a[j];a[j]=t;thumbs();upd()}
 function shrink(file){return new Promise(function(res,rej){
  var r=new FileReader();r.onerror=rej;r.onload=function(){var im=new Image();im.onerror=rej;im.onload=function(){
   var sc=Math.min(1,1400/Math.max(im.width,im.height)),c=document.createElement('canvas');
@@ -491,17 +532,61 @@ function openS(){migQa();if(!S.bh)S.bh=[];if(!S.qa)S.qa=[];if(!S.act)S.act=[];if
 function newDoc(){cur={id:'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)};S=blank();IMG={att:[],doc:[]};openS();$('st').textContent='Belum ada isi'}
 function openDoc(id){cur={id:id};S=JSON.parse(JSON.stringify(DOCS[id]));IMG=S.img||{att:[],doc:[]};delete S.img;delete S.updated;delete S.id;openS();$('st').textContent='Tersimpan ✓'}
 function back(){flush().then(loadHome).then(function(){view(false)})}
+var MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+function plain(h){return String(h==null?'':h).replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s+/g,' ').trim()}
+function docText(x){if(x._ix)return x._ix;
+ var a=[x.nama,x.tempat,fmtTgl(x.tgl),x.tgl,x.nmNotulen,x.nmKepsek,plain(x.agenda),plain(x.kesimpulan),plain(x.rencana)];
+ (x.bh||[]).forEach(function(b){a.push(b.t,b.p,plain(b.i))});
+ (x.qa||[]).forEach(function(q){a.push(q.n);(q.items||[]).forEach(function(t){a.push(plain(t.q),t.m,plain(t.a));(t.ans||[]).forEach(function(n){a.push(n.m,plain(n.a))})})});
+ (x.act||[]).forEach(function(t){a.push(t.t,t.p,t.d)});
+ Object.defineProperty(x,'_ix',{value:a.filter(Boolean).join(' · '),enumerable:false});return x._ix}
+function taOf(x){if(!x.tgl)return 'Tanpa tanggal';var p=x.tgl.split('-'),y=+p[0],m=+p[1];return m>=7?y+'/'+(y+1):(y-1)+'/'+y}
+function hiT(s,ts){var e=esc(s);if(!ts.length)return e;var re=new RegExp('('+ts.map(function(w){return esc(w).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}).join('|')+')','ig');return e.replace(re,'<mark class="hm">$1</mark>')}
+function renderList(){
+ var ids=Object.keys(DOCS),q=($('q').value||'').toLowerCase().split(/\s+/).filter(Boolean),so=$('fs').value,cur=$('fy').value;
+ $('hf').hidden=!ids.length;
+ var tas={};ids.forEach(function(i){tas[taOf(DOCS[i])]=1});
+ var tl=Object.keys(tas).filter(function(t){return t!=='Tanpa tanggal'}).sort().reverse();if(tas['Tanpa tanggal'])tl.push('Tanpa tanggal');
+ var opt='<option value="">Semua tahun ajaran</option>'+tl.map(function(t){return '<option value="'+esc(t)+'">'+(t==='Tanpa tanggal'?t:'Tahun ajaran '+t)+'</option>'}).join('');
+ if($('fy')._o!==opt){$('fy').innerHTML=opt;$('fy')._o=opt;$('fy').value=tl.indexOf(cur)>-1?cur:''}
+ var fy=$('fy').value;
+ var rows=ids.map(function(i){return{id:i,x:DOCS[i]}}).filter(function(r){var lo=docText(r.x).toLowerCase();return(!fy||taOf(r.x)===fy)&&q.every(function(w){return lo.indexOf(w)>-1})});
+ rows.sort(function(a,b){var x=a.x,y=b.x;
+  if(so==='nama')return String(x.nama||'').localeCompare(String(y.nama||''),'id');
+  if(so==='tgl'&&(x.tgl||y.tgl)&&x.tgl!==y.tgl){if(!x.tgl)return 1;if(!y.tgl)return -1;return x.tgl<y.tgl?1:-1}
+  return (y.updated||0)-(x.updated||0)});
+ var h='',last=null;
+ rows.forEach(function(r){var x=r.x,sn='';
+  if(so==='tgl'){var g=x.tgl?MONTHS[+x.tgl.split('-')[1]-1]+' '+x.tgl.split('-')[0]:'Tanpa tanggal';if(g!==last){h+='<h3 class="gh">'+esc(g)+'</h3>';last=g}}
+  if(q.length&&String(x.nama||'').toLowerCase().indexOf(q[0])<0){var ix=docText(x),k=ix.toLowerCase().indexOf(q[0]);if(k>-1)sn='<span class="mu snip">…'+hiT(ix.slice(Math.max(0,k-40),k+q[0].length+70),q)+'…</span>'}
+  h+='<div class="item"><div><b>'+hiT(x.nama||'(tanpa nama rapat)',q)+'</b><span class="mu">'+esc(fmtTgl(x.tgl)||'tanggal belum diisi')+' · diubah '+esc(new Date(x.updated||0).toLocaleString('id-ID'))+'</span>'+sn+'</div><div><button class="p" onclick="openDoc(\''+r.id+'\')">Buka / Edit</button> <button onclick="delDoc(\''+r.id+'\')">Hapus</button> <button class="pb" onclick="dupMenu(\''+r.id+'\',this)">Duplikat ▾</button></div></div>'});
+ $('hl').innerHTML=h||(ids.length?'<p class="mu">Tidak ada notulensi yang cocok dengan pencarian atau penyaringan ini.</p>':'');
+ var on=q.length||fy;$('hcount').textContent=on?rows.length+' dari '+ids.length+' notulensi cocok':'';$('hclr').hidden=!on}
+function clearF(){$('q').value='';$('fy').value='';renderList()}
 function delDoc(id){if(!confirm('Hapus notulensi ini? Tindakan ini tidak dapat dibatalkan.'))return;tx('readwrite',function(s){s.delete(id)}).then(loadHome)}
-function loadHome(){return tx('readonly',function(s){return s.getAll()}).then(function(a){a=a||[];a.sort(function(x,y){return (y.updated||0)-(x.updated||0)});DOCS={};
- $('hl').innerHTML=a.map(function(x){DOCS[x.id]=x;
-  return '<div class="item"><div><b>'+esc(x.nama||'(tanpa nama rapat)')+'</b><span class="mu">'+esc(fmtTgl(x.tgl)||'tanggal belum diisi')+' · diubah '+esc(new Date(x.updated||0).toLocaleString('id-ID'))+'</span></div><div><button class="p" onclick="openDoc(\''+x.id+'\')">Buka / Edit</button> <button onclick="delDoc(\''+x.id+'\')">Hapus</button></div></div>'}).join('');
+function loadHome(){return tx('readonly',function(s){return s.getAll()}).then(function(a){a=a||[];var df=a.filter(function(x){return x.id==='_defaults'})[0];DFL=(df&&df.d)||{};dfFill();a=a.filter(function(x){return x.id!=='_defaults'});a.sort(function(x,y){return (y.updated||0)-(x.updated||0)});DOCS={};
+ a.forEach(function(x){DOCS[x.id]=x});renderList();
  $('hmsg').textContent=a.length?a.length+' notulensi tersimpan di perangkat ini':'Belum ada notulensi. Klik “+ Notulensi baru” untuk memulai.';
  var nb=0;try{nb=+localStorage.getItem('nb')}catch(e){}
- $('nb').textContent=nb?'Cadangan terakhir: '+new Date(nb).toLocaleString('id-ID'):'Belum pernah dicadangkan.'}).catch(function(){$('hmsg').textContent='Penyimpanan browser tidak dapat dipakai (mode privat?). Notulensi tidak akan tersimpan.'})}
-function backup(){tx('readonly',function(s){return s.getAll()}).then(function(a){
- var b=new Blob([JSON.stringify({app:'notulensi',v:1,docs:a})],{type:'application/json'}),u=URL.createObjectURL(b),l=document.createElement('a');
- l.href=u;l.download='cadangan-notulensi-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(l);l.click();l.remove();
- setTimeout(function(){URL.revokeObjectURL(u)},4000);try{localStorage.setItem('nb',Date.now())}catch(e){}loadHome();$('hmsg2').textContent=a.length+' notulensi dicadangkan.'})}
+ $('nb').textContent=nb?'Cadangan terakhir: '+new Date(nb).toLocaleString('id-ID'):'Belum pernah dicadangkan.';bkCheck(a)}).catch(function(){$('hmsg').textContent='Penyimpanan browser tidak dapat dipakai (mode privat?). Notulensi tidak akan tersimpan.'})}
+var AUTO_DONE=false;
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);return v}catch(e){return null}}
+function lsOK(){try{localStorage.setItem('_t','1');localStorage.removeItem('_t');return true}catch(e){return false}}
+function bkName(){var d=new Date(),p=function(n){return String(n).padStart(2,'0')};return 'cadangan-notulensi-'+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'_'+p(d.getHours())+'-'+p(d.getMinutes())+'.json'}
+function nbOk(nm){var n=$('nbn');n.hidden=false;n.className='card nbn ok';n.innerHTML='<b>Cadangan otomatis diunduh:</b> '+esc(nm)+'. Periksa folder Downloads; kalau filenya tidak ada, klik tombol ini. <button onclick="backup()">Unduh lagi</button>'}
+function bkCheck(a){
+ $('nba').checked=ls('nba')!=='0';$('nbi').value=ls('nbi')||'7';
+ var nb=+ls('nb')||0,iv=+(ls('nbi')||7),ch=a.filter(function(x){return(x.updated||0)>nb}).length,
+  due=a.length>0&&ch>0&&(!nb||Date.now()-nb>=iv*864e5),ban=$('nbn');
+ if(!due){if(ban.className.indexOf('ok')<0)ban.hidden=true;return}
+ var days=nb?Math.floor((Date.now()-nb)/864e5):0;
+ ban.hidden=false;ban.className='card nbn';
+ ban.innerHTML='<b>Saatnya mencadangkan data.</b> '+(nb?'Cadangan terakhir '+days+' hari lalu':'Belum pernah dicadangkan')+', dan ada '+ch+' notulensi yang baru atau berubah sejak itu. <button class="p" onclick="backup()">Cadangkan sekarang</button>';
+ if(ls('nba')!=='0'&&!AUTO_DONE&&lsOK()){AUTO_DONE=true;backup(true)}}
+function backup(auto){tx('readonly',function(s){return s.getAll()}).then(function(a){
+ var nm=bkName(),b=new Blob([JSON.stringify({app:'notulensi',v:1,docs:a})],{type:'application/json'}),u=URL.createObjectURL(b),l=document.createElement('a');
+ l.href=u;l.download=nm;document.body.appendChild(l);l.click();l.remove();
+ setTimeout(function(){URL.revokeObjectURL(u)},4000);try{localStorage.setItem('nb',Date.now())}catch(e){}loadHome().then(function(){if(auto)nbOk(nm)});$('hmsg2').textContent=a.filter(function(x){return x.id!=='_defaults'}).length+' notulensi dicadangkan ke '+nm+(auto?' (otomatis).':'.')})}
 $('fr').addEventListener('change',function(e){var f=e.target.files[0];e.target.value='';if(!f)return;var r=new FileReader();
  r.onload=function(){var a;try{a=JSON.parse(r.result).docs}catch(x){}
   if(!a||!a.length){$('hmsg2').textContent='File cadangan tidak valid atau kosong.';return}
@@ -534,7 +619,14 @@ document.addEventListener('keydown',function(e){if(e.key!=='Tab')return;var el=e
 document.querySelectorAll('.slot').forEach(function(s){s.outerHTML=ed('','',s.dataset.f,s.dataset.ph,s.dataset.mh)});
 F.forEach(function(f){$(f).addEventListener('input',upd)});
 window.addEventListener('pagehide',flush);
-bind('fAtt','att');bind('fDoc','doc');
+function pdfName(){var t=S.tgl||'',d;
+ if(/^\d{4}-\d{2}-\d{2}$/.test(t))d=t.slice(2,4)+t.slice(5,7)+t.slice(8,10);else{var n=new Date();d=String(n.getFullYear()).slice(2)+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')}
+ var nm=String(S.nama||'').replace(/[\\\/:*?"<>|]+/g,'-').replace(/\s+/g,' ').trim()||'Notulensi';
+ return (d+'_'+nm).slice(0,120).trim()}
+window.addEventListener('beforeprint',function(){if(!$('edit').hidden)document.title=pdfName()});
+window.addEventListener('afterprint',function(){document.title='Notulensi Rapat'});
+
+bind('fAtt','att');bind('fDoc','doc');bind('fAttCam','att');bind('fDocCam','doc');
 try{navigator.storage.persist()}catch(e){}
 if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(function(){});
 loadHome();
