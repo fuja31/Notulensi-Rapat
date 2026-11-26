@@ -24,6 +24,8 @@ h1{font-size:18px;margin:0}
 .nbn{margin-bottom:12px;border-left:4px solid #e0a000}
 .nbn.ok{border-left-color:var(--ac)}
 .gh{font-size:13px;color:var(--ac);margin:14px 0 6px}
+.bdg{font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;border:1px solid var(--bd);color:var(--mu);margin-left:6px;vertical-align:middle}
+.bdg.f{background:var(--ac);color:var(--acx);border-color:var(--ac)}
 .snip{display:block;margin-top:2px}
 mark.hm{background:#fff176;color:#000;padding:0 1px;border-radius:2px}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px}
@@ -144,7 +146,7 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 @media print{
  @page{size:A4;margin:15mm}
  body{background:#fff}
- header,#fm,#home{display:none!important}
+ header,#fm,#home,#lkb{display:none!important}
  .fsr{display:none!important}
  #pv,#pv[hidden],#edit,#edit[hidden]{display:block!important}
  .wrap{padding:0;max-width:none}
@@ -164,13 +166,16 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 <header>
  <div><h1>📝 Notulensi Rapat</h1></div>
  <div id="h1"><button class="p" onclick="newDoc()">+ Notulensi baru</button></div>
- <div id="h2" hidden><button onclick="back()">← Daftar</button><button id="bIsi" class="p" onclick="mode(0)">✏️ Isi</button><button id="bPv" onclick="mode(1)">👁 Pratinjau</button><span class="mu" id="st"></span><button onclick="window.print()">Ekspor PDF / Cetak</button></div>
+ <div id="h2" hidden><button onclick="back()">← Daftar</button><button id="bIsi" class="p" onclick="mode(0)">✏️ Isi</button><button id="bPv" onclick="mode(1)">👁 Pratinjau</button><button id="bst" class="p" onclick="toggleFinal()">✔ Tandai final</button><span class="mu" id="st"></span><button onclick="window.print()">Ekspor PDF / Cetak</button></div>
 </header>
 <div class="home" id="home">
  <p class="mu" id="hmsg"></p>
  <div class="card nbn" id="nbn" hidden></div>
- <div class="card hf" id="hf" hidden><input id="q" type="text" placeholder="Cari nama rapat, tempat, pembicara, atau isi notulensi…" oninput="renderList()" autocomplete="off"><div class="r2" style="margin-top:8px"><select id="fy" onchange="renderList()"><option value="">Semua tahun ajaran</option></select><select id="fs" onchange="renderList()"><option value="tgl">Urut: tanggal rapat (terbaru)</option><option value="upd">Urut: terakhir diubah</option><option value="nama">Urut: nama rapat (A–Z)</option></select></div><div class="mu" style="margin-top:6px"><span id="hcount"></span> <button id="hclr" hidden style="padding:2px 10px;font-size:12px" onclick="clearF()">Hapus filter</button></div></div>
+ <div class="card hf" id="hf" hidden><input id="q" type="text" placeholder="Cari nama rapat, tempat, pembicara, atau isi notulensi…" oninput="renderList()" autocomplete="off"><div class="r2" style="margin-top:8px;grid-template-columns:1fr 1fr 1fr"><select id="fy" onchange="renderList()"><option value="">Semua tahun ajaran</option></select><select id="fs" onchange="renderList()"><option value="tgl">Urut: tanggal rapat (terbaru)</option><option value="upd">Urut: terakhir diubah</option><option value="nama">Urut: nama rapat (A–Z)</option></select><select id="fst" onchange="renderList()"><option value="">Semua status</option><option value="draf">Draf</option><option value="final">Final</option></select></div><div class="mu" style="margin-top:6px"><span id="hcount"></span> <button id="hclr" hidden style="padding:2px 10px;font-size:12px" onclick="clearF()">Hapus filter</button></div></div>
  <div id="hl"></div>
+ <details class="card" id="trs" hidden style="margin-top:16px"><summary><b id="trh">Tempat sampah</b></summary>
+  <p class="mu">Notulensi yang dihapus disimpan di sini selama 30 hari, lalu dihapus permanen secara otomatis.</p>
+  <div id="trl"></div><button style="margin-top:8px" onclick="trEmpty()">Kosongkan tempat sampah</button></details>
  <details class="card" id="dfl" style="margin-top:16px"><summary><b>Isian bawaan notulensi baru</b></summary>
   <p class="mu">Diisi sekali; otomatis terisi di setiap notulensi baru. Notulensi yang sudah ada tidak berubah.</p>
   <div class="r2"><div><label>Judul formulir</label><input id="dj" oninput="dfSave()" placeholder="FORM NOTULENSI RAPAT ..."></div><div><label>Tempat</label><input id="dt" oninput="dfSave()"></div>
@@ -190,6 +195,7 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
  </div>
 </div>
 <div id="edit" hidden>
+ <div class="wrap" id="lkb" hidden style="padding-bottom:0"><div class="card nbn ok"><b>Notulensi ini berstatus FINAL dan dikunci.</b> Isinya tidak bisa diedit, tetapi pratinjau dan ekspor PDF tetap bisa dipakai. <button onclick="toggleFinal()">🔓 Buka kunci</button></div></div>
  <div class="wrap" id="fm">
  <div class="card">
   <label>Judul formulir</label><input id="judulform">
@@ -205,7 +211,7 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
   <h2>Pembahasan (per topik dan pembicara)</h2>
   <div id="bhList"></div>
   <button style="margin-top:8px" onclick="addBh()">+ Topik pembahasan</button>
-  <h2>Tanya jawab</h2>
+  <h2>Diskusi dan tanya jawab</h2>
   <div id="qaList"></div>
   <button style="margin-top:8px" onclick="addQa()">+ Tanya jawab</button>
   <h2>Kesimpulan / keputusan rapat</h2>
@@ -430,7 +436,7 @@ function dupMenu(id,b){if(!P.hidden&&P._b===b){P.hidden=true;return}
  if(y+hh>innerHeight-8){y=r.top-hh-4;if(y<8)y=Math.max(8,innerHeight-hh-8)}
  P.style.left=x+'px';P.style.top=y+'px'}
 function dupDoc(id,mode){P.hidden=true;var x=JSON.parse(JSON.stringify(DOCS[id]));if(!x)return;
- var nid='n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);x.id=nid;x.tgl='';x.img={att:[],doc:[]};x.updated=Date.now();
+ var nid='n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);x.id=nid;x.tgl='';x.status='draf';delete x.finalAt;x.img={att:[],doc:[]};x.updated=Date.now();
  if(mode==='k'){(x.bh||[]).forEach(function(b){b.i=''});x.qa=[];x.kesimpulan='';x.rencana='';x.act=[]}else x.nama=(x.nama||'')+' (salinan)';
  tx('readwrite',function(s){s.put(x)}).then(loadHome).then(function(){openDoc(nid)})}
 function blank(){return Object.assign({judulform:DEF,bh:[{t:'',p:'',i:''}],qa:[],act:[]},DFL)}
@@ -442,16 +448,19 @@ function hydrate(){document.querySelectorAll('.ed').forEach(function(el){var g=e
  if(g){var o=S[g][+el.dataset.i]||{};if(el.dataset.j!==undefined)o=(o.items||[])[+el.dataset.j]||{};if(el.dataset.k!==undefined)o=(o.ans||[])[+el.dataset.k]||{};v=o[f]}else v=S[f];el.innerHTML=v||''})}
 function migQa(){S.qa=(S.qa||[]).map(function(q){if(!q.items)q={n:q.n,items:[{q:q.q||'',m:q.m||'',a:q.a||'',nj:false}]};
  q.items.forEach(function(t){if(!t.ans){t.ans=[{m:t.m||'',a:t.a||''}];delete t.m;delete t.a}});return q})}
-function qaHtml(){return S.qa.map(function(q,i){var it=q.items||[];
- return '<div class="blk">'+it.map(function(t,j){var A=t.ans||[],pp='S.qa['+i+'].items['+j+']';
+var LBL=['Jawaban','Tanggapan','Penjelasan','Saran'],WHO={Jawaban:'Penjawab',Tanggapan:'Penanggap',Penjelasan:'Pemberi penjelasan',Saran:'Pemberi saran'};
+function setLbl(i,v){S.qa[i].lbl=v==='_'?'Respons':v;lists();upd()}
+function qaHtml(){return S.qa.map(function(q,i){var it=q.items||[],L=q.lbl||'Jawaban',std=LBL.indexOf(L)>-1,who=WHO[L]||'Nama',nl=L==='Jawaban'?'Tidak dijawab':'Tidak ada '+L.toLowerCase();
+ return '<div class="blk"><div class="mu" style="margin-bottom:6px">Istilah respons: <select style="font:inherit;padding:2px 6px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:6px" onchange="setLbl('+i+',this.value)">'+LBL.map(function(x){return '<option'+(x===L?' selected':'')+'>'+x+'</option>'}).join('')+'<option value="_"'+(std?'':' selected')+'>Lainnya…</option></select>'+(std?'':' <input value="'+esc(L)+'" placeholder="Tulis istilah" style="width:150px;padding:2px 6px" oninput="S.qa['+i+'].lbl=this.value;upd()">')+'</div>'
+ +it.map(function(t,j){var A=t.ans||[],pp='S.qa['+i+'].items['+j+']';
   return '<div class="qg">'
-  +(j===0?'<input value="'+esc(q.n)+'" placeholder="Penanya" oninput="S.qa['+i+'].n=this.value;upd()">':'<span class="mu">Pertanyaan '+(j+1)+'</span>')
-  +ed('qa',i,'q','Pertanyaan'+(it.length>1?' '+(j+1):''),50,j)
-  +(t.nj?'':A.map(function(an,k){return '<div class="aw"><input value="'+esc(an.m)+'" placeholder="Penjawab" oninput="'+pp+'.ans['+k+'].m=this.value;upd()">'+(A.length>1?'<button title="Hapus penjawab ini" onclick="'+pp+'.ans.splice('+k+',1);lists();upd()">✕</button>':'')+'</div>'+ed('qa',i,'a','Jawaban'+(A.length>1?' '+(k+1):''),50,j,k)}).join(''))
-  +'<label class="nj"><input type="checkbox" '+(t.nj?'checked':'')+' onchange="'+pp+'.nj=this.checked;lists();upd()"> Tidak dijawab</label>'
-  +'<div class="ab">'+(t.nj?'':'<button onclick="'+pp+'.ans.push({m:\'\',a:\'\'});lists();upd()">+ Penjawab lain</button>')+(it.length>1?'<button onclick="S.qa['+i+'].items.splice('+j+',1);lists();upd()">Hapus pertanyaan '+(j+1)+'</button>':'')+'</div>'
+  +(j===0?'<input value="'+esc(q.n)+'" placeholder="Penanya / pembicara" oninput="S.qa['+i+'].n=this.value;upd()">':'<span class="mu">Pertanyaan '+(j+1)+'</span>')
+  +ed('qa',i,'q','Pertanyaan / pendapat'+(it.length>1?' '+(j+1):''),50,j)
+  +(t.nj?'':A.map(function(an,k){return '<div class="aw"><input value="'+esc(an.m)+'" placeholder="'+who+'" oninput="'+pp+'.ans['+k+'].m=this.value;upd()">'+(A.length>1?'<button title="Hapus yang ini" onclick="'+pp+'.ans.splice('+k+',1);lists();upd()">✕</button>':'')+'</div>'+ed('qa',i,'a',esc(L)+(A.length>1?' '+(k+1):''),50,j,k)}).join(''))
+  +'<label class="nj"><input type="checkbox" '+(t.nj?'checked':'')+' onchange="'+pp+'.nj=this.checked;lists();upd()"> '+esc(nl)+'</label>'
+  +'<div class="ab">'+(t.nj?'':'<button onclick="'+pp+'.ans.push({m:\'\',a:\'\'});lists();upd()">+ '+who+' lain</button>')+(it.length>1?'<button onclick="S.qa['+i+'].items.splice('+j+',1);lists();upd()">Hapus pertanyaan '+(j+1)+'</button>':'')+'</div>'
   +'</div>'}).join('')
- +'<button onclick="S.qa['+i+'].items.push({q:\'\',nj:false,ans:[{m:\'\',a:\'\'}]});lists();upd()">+ Pertanyaan &amp; jawaban (penanya sama)</button> <button onclick="S.qa.splice('+i+',1);lists();upd()">Hapus penanya</button></div>'}).join('')}
+ +'<button onclick="S.qa['+i+'].items.push({q:\'\',nj:false,ans:[{m:\'\',a:\'\'}]});lists();upd()">+ Pertanyaan / pendapat (penanya sama)</button> <button onclick="S.qa.splice('+i+',1);lists();upd()">Hapus penanya</button></div>'}).join('')}
 function lists(){
  $('bhList').innerHTML=S.bh.map(function(b,i){return '<div class="blk"><div class="r2"><input value="'+esc(b.t)+'" placeholder="Topik pembahasan" oninput="S.bh['+i+'].t=this.value;upd()"><input value="'+esc(b.p)+'" placeholder="Pembicara" oninput="S.bh['+i+'].p=this.value;upd()"></div>'+ed('bh',i,'i','Isi pembahasan',130)+'<button onclick="S.bh.splice('+i+',1);lists();upd()">Hapus topik</button></div>'}).join('');
  $('qaList').innerHTML=qaHtml();
@@ -469,9 +478,9 @@ function render(){
  var bh=S.bh.filter(function(b){return b.t||b.p||T(b.i)}),qa=S.qa.filter(function(q){return q.n||(q.items||[]).some(function(t){return T(t.q)||(!t.nj&&(t.ans||[]).some(function(a){return a.m||T(a.a)}))})}),ac=S.act.filter(function(a){return a.t||a.p||a.d});
  var c='';
  bh.forEach(function(b,i){c+='<div class="hd">'+String.fromCharCode(65+i%26)+'. '+esc(b.t)+(b.p?' – '+esc(b.p):'')+'</div><div class="rt">'+(b.i||'')+'</div>'});
- if(qa.length)c+='<div class="sec">Tanya Jawab</div>'+qa.map(function(q,i){
-  var it=(q.items||[]).filter(function(t){return T(t.q)||(!t.nj&&(t.ans||[]).some(function(a){return a.m||T(a.a)}))}),n=(i+1)+'.',nm=q.n?esc(q.n):'';
-  function ans(t){var rows=t.nj?[['Jawaban','-']]:(t.ans||[]).filter(function(a){return T(a.a)}).map(function(a){return['Jawaban'+(a.m?' ('+esc(a.m)+')':''),a.a]});
+ if(qa.length)c+='<div class="sec">Diskusi dan Tanya Jawab</div>'+qa.map(function(q,i){
+  var it=(q.items||[]).filter(function(t){return T(t.q)||(!t.nj&&(t.ans||[]).some(function(a){return a.m||T(a.a)}))}),n=(i+1)+'.',nm=q.n?esc(q.n):'',L=esc(q.lbl||'Jawaban');
+  function ans(t){var rows=t.nj?[]:(t.ans||[]).filter(function(a){return T(a.a)}).map(function(a){return[L+(a.m?' ('+esc(a.m)+')':''),a.a]});
    if(!rows.length)return '';
    return '<div class="qaw qans">'+rows.map(function(r){return '<b class="ql">'+r[0]+'</b><b class="qc">:</b><div class="rt">'+r[1]+'</div>'}).join('')+'</div>'}
   if(it.length<2){var t=it[0]||{};
@@ -528,7 +537,12 @@ function bind(id,k){$(id).addEventListener('change',function(e){
 function fill(){F.forEach(function(f){$(f).value=S[f]||''});$('fsz').value=S.fs||10}
 function view(e){$('home').hidden=e;$('edit').hidden=!e;$('h1').hidden=e;$('h2').hidden=!e;window.scrollTo(0,0)}
 function mode(m){$('fm').hidden=!!m;$('pv').hidden=!m;$('bIsi').className=m?'':'p';$('bPv').className=m?'p':'';window.scrollTo(0,0)}
-function openS(){migQa();if(!S.bh)S.bh=[];if(!S.qa)S.qa=[];if(!S.act)S.act=[];if(!S.judulform)S.judulform=DEF;fill();lists();thumbs();render();dirty=false;mode(0);view(true)}
+function openS(){migQa();if(!S.bh)S.bh=[];if(!S.qa)S.qa=[];if(!S.act)S.act=[];if(!S.judulform)S.judulform=DEF;fill();lists();thumbs();render();dirty=false;mode(0);view(true);applyLock()}
+function applyLock(){var f=S.status==='final';$('fm').inert=f;$('fm').style.opacity=f?'.65':'';$('fsz').disabled=f;$('lkb').hidden=!f;$('bst').textContent=f?'🔓 Buka kunci':'✔ Tandai final';$('bst').className=f?'':'p'}
+function toggleFinal(){
+ if(S.status==='final'){if(!confirm('Buka kunci notulensi ini supaya bisa diedit lagi?'))return;S.status='draf';delete S.finalAt}
+ else{if(!confirm('Tandai notulensi ini sebagai FINAL? Isinya akan dikunci dan tidak bisa diedit sampai kuncinya dibuka. Pratinjau dan ekspor PDF tetap bisa dipakai.'))return;S.status='final';S.finalAt=Date.now()}
+ applyLock();upd()}
 function newDoc(){cur={id:'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)};S=blank();IMG={att:[],doc:[]};openS();$('st').textContent='Belum ada isi'}
 function openDoc(id){cur={id:id};S=JSON.parse(JSON.stringify(DOCS[id]));IMG=S.img||{att:[],doc:[]};delete S.img;delete S.updated;delete S.id;openS();$('st').textContent='Tersimpan ✓'}
 function back(){flush().then(loadHome).then(function(){view(false)})}
@@ -543,14 +557,14 @@ function docText(x){if(x._ix)return x._ix;
 function taOf(x){if(!x.tgl)return 'Tanpa tanggal';var p=x.tgl.split('-'),y=+p[0],m=+p[1];return m>=7?y+'/'+(y+1):(y-1)+'/'+y}
 function hiT(s,ts){var e=esc(s);if(!ts.length)return e;var re=new RegExp('('+ts.map(function(w){return esc(w).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}).join('|')+')','ig');return e.replace(re,'<mark class="hm">$1</mark>')}
 function renderList(){
- var ids=Object.keys(DOCS),q=($('q').value||'').toLowerCase().split(/\s+/).filter(Boolean),so=$('fs').value,cur=$('fy').value;
+ var ids=Object.keys(DOCS),q=($('q').value||'').toLowerCase().split(/\s+/).filter(Boolean),so=$('fs').value,cur=$('fy').value,fst=$('fst').value;
  $('hf').hidden=!ids.length;
  var tas={};ids.forEach(function(i){tas[taOf(DOCS[i])]=1});
  var tl=Object.keys(tas).filter(function(t){return t!=='Tanpa tanggal'}).sort().reverse();if(tas['Tanpa tanggal'])tl.push('Tanpa tanggal');
  var opt='<option value="">Semua tahun ajaran</option>'+tl.map(function(t){return '<option value="'+esc(t)+'">'+(t==='Tanpa tanggal'?t:'Tahun ajaran '+t)+'</option>'}).join('');
  if($('fy')._o!==opt){$('fy').innerHTML=opt;$('fy')._o=opt;$('fy').value=tl.indexOf(cur)>-1?cur:''}
  var fy=$('fy').value;
- var rows=ids.map(function(i){return{id:i,x:DOCS[i]}}).filter(function(r){var lo=docText(r.x).toLowerCase();return(!fy||taOf(r.x)===fy)&&q.every(function(w){return lo.indexOf(w)>-1})});
+ var rows=ids.map(function(i){return{id:i,x:DOCS[i]}}).filter(function(r){var lo=docText(r.x).toLowerCase();return(!fy||taOf(r.x)===fy)&&(!fst||(r.x.status==='final'?'final':'draf')===fst)&&q.every(function(w){return lo.indexOf(w)>-1})});
  rows.sort(function(a,b){var x=a.x,y=b.x;
   if(so==='nama')return String(x.nama||'').localeCompare(String(y.nama||''),'id');
   if(so==='tgl'&&(x.tgl||y.tgl)&&x.tgl!==y.tgl){if(!x.tgl)return 1;if(!y.tgl)return -1;return x.tgl<y.tgl?1:-1}
@@ -559,16 +573,28 @@ function renderList(){
  rows.forEach(function(r){var x=r.x,sn='';
   if(so==='tgl'){var g=x.tgl?MONTHS[+x.tgl.split('-')[1]-1]+' '+x.tgl.split('-')[0]:'Tanpa tanggal';if(g!==last){h+='<h3 class="gh">'+esc(g)+'</h3>';last=g}}
   if(q.length&&String(x.nama||'').toLowerCase().indexOf(q[0])<0){var ix=docText(x),k=ix.toLowerCase().indexOf(q[0]);if(k>-1)sn='<span class="mu snip">…'+hiT(ix.slice(Math.max(0,k-40),k+q[0].length+70),q)+'…</span>'}
-  h+='<div class="item"><div><b>'+hiT(x.nama||'(tanpa nama rapat)',q)+'</b><span class="mu">'+esc(fmtTgl(x.tgl)||'tanggal belum diisi')+' · diubah '+esc(new Date(x.updated||0).toLocaleString('id-ID'))+'</span>'+sn+'</div><div><button class="p" onclick="openDoc(\''+r.id+'\')">Buka / Edit</button> <button onclick="delDoc(\''+r.id+'\')">Hapus</button> <button class="pb" onclick="dupMenu(\''+r.id+'\',this)">Duplikat ▾</button></div></div>'});
+  h+='<div class="item"><div><b>'+hiT(x.nama||'(tanpa nama rapat)',q)+(x.status==='final'?'<span class="bdg f">Final</span>':'<span class="bdg">Draf</span>')+'</b><span class="mu">'+esc(fmtTgl(x.tgl)||'tanggal belum diisi')+' · diubah '+esc(new Date(x.updated||0).toLocaleString('id-ID'))+'</span>'+sn+'</div><div><button class="p" onclick="openDoc(\''+r.id+'\')">Buka / Edit</button> <button onclick="delDoc(\''+r.id+'\')">Hapus</button> <button class="pb" onclick="dupMenu(\''+r.id+'\',this)">Duplikat ▾</button></div></div>'});
  $('hl').innerHTML=h||(ids.length?'<p class="mu">Tidak ada notulensi yang cocok dengan pencarian atau penyaringan ini.</p>':'');
- var on=q.length||fy;$('hcount').textContent=on?rows.length+' dari '+ids.length+' notulensi cocok':'';$('hclr').hidden=!on}
-function clearF(){$('q').value='';$('fy').value='';renderList()}
-function delDoc(id){if(!confirm('Hapus notulensi ini? Tindakan ini tidak dapat dibatalkan.'))return;tx('readwrite',function(s){s.delete(id)}).then(loadHome)}
-function loadHome(){return tx('readonly',function(s){return s.getAll()}).then(function(a){a=a||[];var df=a.filter(function(x){return x.id==='_defaults'})[0];DFL=(df&&df.d)||{};dfFill();a=a.filter(function(x){return x.id!=='_defaults'});a.sort(function(x,y){return (y.updated||0)-(x.updated||0)});DOCS={};
+ var on=q.length||fy||fst;$('hcount').textContent=on?rows.length+' dari '+ids.length+' notulensi cocok':'';$('hclr').hidden=!on}
+function clearF(){$('q').value='';$('fy').value='';$('fst').value='';renderList()}
+var TR={},TRASH_DAYS=30;
+function strip(x){return JSON.parse(JSON.stringify(x))}
+function delDoc(id){var x=DOCS[id];if(!x)return;
+ if(x.status==='final'&&!confirm('Notulensi ini berstatus FINAL. Yakin tetap ingin menghapusnya?'))return;
+ if(!confirm('Pindahkan notulensi ini ke tempat sampah? Notulensi bisa dipulihkan dalam '+TRASH_DAYS+' hari, lalu dihapus permanen.'))return;
+ var y=strip(x);y.deletedAt=Date.now();y.updated=Date.now();tx('readwrite',function(s){s.put(y)}).then(loadHome)}
+function trRestore(id){var x=TR[id];if(!x)return;var y=strip(x);delete y.deletedAt;y.updated=Date.now();tx('readwrite',function(s){s.put(y)}).then(loadHome)}
+function trPurge(id){if(!confirm('Hapus permanen notulensi ini? Tindakan ini tidak dapat dibatalkan.'))return;tx('readwrite',function(s){s.delete(id)}).then(loadHome)}
+function trEmpty(){var ids=Object.keys(TR);if(!ids.length||!confirm('Hapus permanen semua ('+ids.length+') notulensi di tempat sampah? Tindakan ini tidak dapat dibatalkan.'))return;tx('readwrite',function(s){ids.forEach(function(i){s.delete(i)})}).then(loadHome)}
+function renderTrash(){var ids=Object.keys(TR).sort(function(a,b){return TR[b].deletedAt-TR[a].deletedAt}),now=Date.now();
+ $('trs').hidden=!ids.length;$('trh').textContent='Tempat sampah ('+ids.length+')';
+ $('trl').innerHTML=ids.map(function(id){var x=TR[id],d=Math.floor((now-x.deletedAt)/864e5),left=Math.max(0,TRASH_DAYS-d);
+  return '<div class="item"><div><b>'+esc(x.nama||'(tanpa nama rapat)')+'</b><span class="mu">'+esc(fmtTgl(x.tgl)||'tanggal belum diisi')+' · dihapus '+(d?d+' hari lalu':'hari ini')+' · dihapus permanen dalam '+left+' hari</span></div><div><button class="p" onclick="trRestore(\''+id+'\')">Pulihkan</button> <button onclick="trPurge(\''+id+'\')">Hapus permanen</button></div></div>'}).join('')}
+function loadHome(){return tx('readonly',function(s){return s.getAll()}).then(function(a){a=a||[];var df=a.filter(function(x){return x.id==='_defaults'})[0];DFL=(df&&df.d)||{};dfFill();a=a.filter(function(x){return x.id!=='_defaults'});var all=a,now=Date.now(),old=a.filter(function(x){return x.deletedAt&&now-x.deletedAt>=TRASH_DAYS*864e5});if(old.length){tx('readwrite',function(s){old.forEach(function(x){s.delete(x.id)})});a=a.filter(function(x){return old.indexOf(x)<0});all=a}TR={};a.filter(function(x){return x.deletedAt}).forEach(function(x){TR[x.id]=x});a=a.filter(function(x){return !x.deletedAt});a.sort(function(x,y){return (y.updated||0)-(x.updated||0)});DOCS={};
  a.forEach(function(x){DOCS[x.id]=x});renderList();
  $('hmsg').textContent=a.length?a.length+' notulensi tersimpan di perangkat ini':'Belum ada notulensi. Klik “+ Notulensi baru” untuk memulai.';
  var nb=0;try{nb=+localStorage.getItem('nb')}catch(e){}
- $('nb').textContent=nb?'Cadangan terakhir: '+new Date(nb).toLocaleString('id-ID'):'Belum pernah dicadangkan.';bkCheck(a)}).catch(function(){$('hmsg').textContent='Penyimpanan browser tidak dapat dipakai (mode privat?). Notulensi tidak akan tersimpan.'})}
+ $('nb').textContent=nb?'Cadangan terakhir: '+new Date(nb).toLocaleString('id-ID'):'Belum pernah dicadangkan.';bkCheck(all);renderTrash()}).catch(function(){$('hmsg').textContent='Penyimpanan browser tidak dapat dipakai (mode privat?). Notulensi tidak akan tersimpan.'})}
 var AUTO_DONE=false;
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);return v}catch(e){return null}}
 function lsOK(){try{localStorage.setItem('_t','1');localStorage.removeItem('_t');return true}catch(e){return false}}
